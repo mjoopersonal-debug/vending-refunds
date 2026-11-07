@@ -43,7 +43,7 @@ class SofiesApp extends StatelessWidget {
         scaffoldBackgroundColor: offWhite,
         useMaterial3: true,
         appBarTheme: const AppBarTheme(backgroundColor: pink, foregroundColor: Colors.white, centerTitle: false),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 2,
           shadowColor: pink.withOpacity(0.2),
@@ -187,7 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Live listener: every new Pending refund rings the alarm and shows a notice
     _sub = FirebaseFirestore.instance
         .collection('refunds')
         .where('status', isEqualTo: 'Pending')
