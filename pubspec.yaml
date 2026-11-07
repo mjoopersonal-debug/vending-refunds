@@ -1,5 +1,5 @@
 name: vending_refunds
-description: Vending refund manager with exact alarms.
+description: SOFTIES vending refund manager with exact alarms.
 publish_to: none
 version: 1.0.0+1
 
@@ -12,8 +12,10 @@ dependencies:
   alarm: 5.15.0
   permission_handler: ^11.3.1
   firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.0
   url_launcher: ^6.3.0
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
