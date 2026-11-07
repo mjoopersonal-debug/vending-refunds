@@ -11,6 +11,8 @@ const pink = Color(0xFFD81860);
 const brightPink = Color(0xFFFF4081);
 const lightPink = Color(0xFFFFC1D9);
 const offWhite = Color(0xFFFFF0F5);
+const darkPlum = Color(0xFF5A0F2E);
+const greyPlum = Color(0xFF7C5F6B);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +55,7 @@ class SofiesApp extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: pink,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
       ),
@@ -101,6 +103,8 @@ class AuthGate extends StatelessWidget {
   }
 }
 
+// ---------- Sign-in screen (matches the web sign-in) ----------
+
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
   @override
@@ -127,6 +131,15 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
+  InputDecoration _decoration(String label) => InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: brightPink)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: brightPink)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: pink, width: 2)),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,30 +153,55 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                Image.asset('assets/icon.png', height: 170, errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 120, color: pink)),
-                const SizedBox(height: 8),
-                const Text('SOFTIES', style: TextStyle(color: pink, fontSize: 30, fontWeight: FontWeight.bold)),
-                const Text('Owner sign-in', style: TextStyle(color: Color(0xFF5A0F2E))),
                 const SizedBox(height: 24),
-                TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: brightPink)))),
-                const SizedBox(height: 12),
-                TextField(controller: _password, obscureText: true, decoration: InputDecoration(labelText: 'Password', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: brightPink)))),
-                const SizedBox(height: 12),
-                if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _busy ? null : _signIn,
-                    child: Padding(padding: const EdgeInsets.all(14), child: Text(_busy ? 'Signing in...' : 'Sign in  →', style: const TextStyle(fontSize: 17))),
+                Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [BoxShadow(color: pink.withOpacity(0.25), blurRadius: 18)],
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/icon.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 100, color: pink),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text('Owner sign-in', style: TextStyle(color: darkPlum, fontSize: 18)),
                 const SizedBox(height: 24),
-                Image.asset('assets/cone.png', height: 150, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    children: [
+                      TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: _decoration('Email')),
+                      const SizedBox(height: 14),
+                      TextField(controller: _password, obscureText: true, decoration: _decoration('Password')),
+                      const SizedBox(height: 10),
+                      if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: FilledButton(
+                          onPressed: _busy ? null : _signIn,
+                          child: Text(_busy ? 'Signing in...' : 'Sign in  →',
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Sweet Service. Always!', style: TextStyle(color: pink, fontStyle: FontStyle.italic)),
+                const SizedBox(height: 16),
+                Image.asset('assets/cone.png', height: 220, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                Image.asset('assets/wave.png', width: double.infinity, height: 110, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
               ],
             ),
           ),
@@ -172,6 +210,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
+
+// ---------- Home screen (matches the web dashboard) ----------
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -218,59 +258,168 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void _signOut() => FirebaseAuth.instance.signOut();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SOFTIES'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: () => FirebaseAuth.instance.signOut(),
-          ),
-        ],
-      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          Image.asset('assets/wave.png', height: 90, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-          const Text('Welcome Back', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: pink)),
-          const SizedBox(height: 16),
-          Row(children: [
-            Expanded(child: _countCard('Pending', _pendingCount.toString(), pink)),
-          ]),
-          const SizedBox(height: 16),
-          _menuTile(context, 'Pending Refunds', Icons.access_time, pink, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundListScreen(status: 'Pending')))),
-          _menuTile(context, 'Done Refunds', Icons.check_circle, Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundListScreen(status: 'Done')))),
-          _menuTile(context, 'Settings', Icons.settings, Colors.blueGrey, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-          const SizedBox(height: 16),
-          Center(child: Image.asset('assets/cone.png', height: 110, errorBuilder: (_, __, ___) => const SizedBox.shrink())),
+          _Header(onSignOut: _signOut),
+          Transform.translate(
+            offset: const Offset(0, -28),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  Expanded(child: _statCard('Pending', _pendingCount.toString(), pink, Colors.white)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('refunds')
+                          .where('status', isEqualTo: 'Done')
+                          .snapshots(),
+                      builder: (context, snap) {
+                        final doneCount = snap.hasData ? snap.data!.size.toString() : '0';
+                        return _statCard('Done', doneCount, Colors.green, const Color(0xFFF1FBF2));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+            child: Column(
+              children: [
+                _menuTile('Pending\nRefunds', Icons.access_time, pink, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundListScreen(status: 'Pending')))),
+                _menuTile('Done\nRefunds', Icons.check_circle, Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundListScreen(status: 'Done')))),
+                _menuTile('Settings', Icons.settings, greyPlum, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Image.asset('assets/cone.png', height: 200, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _countCard(String label, String value, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(children: [
-          Text(label, style: TextStyle(color: color, fontSize: 15)),
-          Text(value, style: TextStyle(color: color, fontSize: 28, fontWeight: FontWeight.bold)),
-        ]),
+  Widget _statCard(String label, String value, Color numberColor, Color background) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: pink.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(color: pink, fontSize: 15)),
+          const SizedBox(height: 4),
+          Text(value, style: TextStyle(color: numberColor, fontSize: 28, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }
 
-  Widget _menuTile(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(backgroundColor: color, child: Icon(icon, color: Colors.white)),
-        title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.chevron_right, color: pink),
-        onTap: onTap,
+  Widget _menuTile(String label, IconData icon, Color color, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        elevation: 2,
+        shadowColor: pink.withOpacity(0.2),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                CircleAvatar(radius: 24, backgroundColor: color, child: Icon(icon, color: Colors.white)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(label, style: const TextStyle(color: darkPlum, fontSize: 17, fontWeight: FontWeight.bold)),
+                ),
+                const Icon(Icons.chevron_right, color: pink, size: 28),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  final VoidCallback onSignOut;
+  const _Header({required this.onSignOut});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 230,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [brightPink, pink],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 14,
+              top: 8,
+              child: Material(
+                color: Colors.white24,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onSignOut,
+                  child: const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(Icons.logout, color: Colors.white, size: 20),
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 20,
+              top: 78,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hello!', style: TextStyle(color: Colors.white70, fontSize: 15)),
+                  Text('Welcome Back', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 6,
+              top: 40,
+              child: Image.asset(
+                'assets/icon.png',
+                height: 150,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
