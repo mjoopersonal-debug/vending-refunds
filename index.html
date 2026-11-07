@@ -7,39 +7,42 @@
 <link rel="manifest" href="manifest.json">
 <title>SOFTIES Vending Refunds</title>
 <style>
-  :root {
-    --main: #D81860;
-    --bright: #FF4081;
-    --light: #FFC1D9;
-    --offwhite: #FFF0F5;
-    --green: #4CAF50;
-    --blue: #2196F3;
-    --red: #F44336;
-  }
+  :root { --main:#D81860; --bright:#FF4081; --light:#FFC1D9; --offwhite:#FFF0F5; --green:#4CAF50; --blue:#2196F3; --red:#F44336; }
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; min-height: 100vh; background: var(--offwhite); color: #5a0f2e; }
 
-  /* Top header */
-  .topbar { background: linear-gradient(180deg, var(--bright), var(--main)); color: #fff; padding: 16px 18px 26px; border-radius: 0 0 36px 36px; position: relative; overflow: hidden; }
-  .topbar .row { display: flex; justify-content: space-between; align-items: center; }
+  /* Sign-in */
+  #login { max-width: 420px; margin: 0 auto; min-height: 100vh; background: linear-gradient(180deg, #fff 0%, var(--light) 100%); padding: 30px 22px; text-align: center; position: relative; overflow: hidden; }
+  #login .logo-big { width: 200px; max-width: 70%; margin: 20px auto 6px; display: block; }
+  #login .sub { color: #5a0f2e; font-size: 16px; margin-bottom: 18px; }
+  #login .cone { width: 170px; display: block; margin: 20px auto 0; }
+  #login input, #settings input { width: 100%; padding: 14px; margin: 8px 0; font-size: 16px; border-radius: 16px; border: 1px solid var(--bright); background: #fff; color: #5a0f2e; }
+  #login button, #settings button { width: 100%; padding: 15px; margin-top: 12px; border: 0; border-radius: 16px; color: #fff; font-size: 17px; font-weight: bold; background: linear-gradient(135deg, var(--bright), var(--main)); box-shadow: 0 6px 14px rgba(216,24,96,.35); }
+  #login .wave { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; opacity: .9; pointer-events: none; }
+  #error { color: var(--red); font-size: 14px; }
+  #login .tag { position: relative; z-index: 1; color: var(--main); font-style: italic; margin-top: 16px; }
+
+  /* Dashboard header */
+  .topbar { background: linear-gradient(180deg, var(--bright), var(--main)); color: #fff; padding: 18px 18px 30px; border-radius: 0 0 36px 36px; position: relative; overflow: hidden; min-height: 150px; }
+  .topbar .row { display: flex; justify-content: space-between; align-items: flex-start; }
   .topbar .title { font-size: 14px; opacity: .9; }
   .topbar h1 { margin: 2px 0 0; font-size: 26px; }
-  .topbar .mascot { position: absolute; right: 8px; top: 10px; width: 110px; }
-  .iconbtn { background: rgba(255,255,255,.25); color: #fff; border: 0; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; }
+  .topbar .mascot { position: absolute; right: 6px; top: 8px; width: 130px; }
+  .iconbtn { background: rgba(255,255,255,.25); color: #fff; border: 0; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; position: relative; z-index: 1; }
 
-  /* Summary cards */
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; margin-top: -26px; }
+  /* Stats */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; margin-top: -26px; position: relative; }
   .stat { background: #fff; border-radius: 18px; padding: 14px; text-align: center; box-shadow: 0 6px 16px rgba(216,24,96,.15); }
   .stat .lbl { font-size: 14px; color: var(--main); }
-  .stat .num { font-size: 26px; font-weight: bold; }
+  .stat .num { font-size: 28px; font-weight: bold; }
   .stat.pending .num { color: var(--main); }
   .stat.done { background: #f1fbf2; }
   .stat.done .num { color: var(--green); }
 
-  /* Menu buttons */
+  /* Menu */
   .menu { padding: 0 14px; }
   .menu button { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #fff; border: 0; border-radius: 18px; padding: 14px; margin-bottom: 10px; font-size: 16px; font-weight: bold; color: #5a0f2e; box-shadow: 0 4px 12px rgba(216,24,96,.12); }
-  .menu .ico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; margin-right: 12px; }
+  .menu .ico { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; margin-right: 12px; }
   .ico.red { background: var(--main); }
   .ico.green { background: var(--green); }
   .ico.grey { background: #7c5f6b; }
@@ -53,7 +56,7 @@
   .card { background: #fff; margin: 12px 14px; padding: 14px; border-radius: 18px; box-shadow: 0 4px 14px rgba(216,24,96,.12); }
   .card .top { display: flex; align-items: center; }
   .card .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--light); margin-right: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .card .phone { font-size: 17px; font-weight: bold; color: #5a0f2e; flex: 1; }
+  .card .phone { font-size: 17px; font-weight: bold; flex: 1; }
   .card .meta { color: #7c5f6b; font-size: 13px; margin-top: 8px; white-space: pre-line; line-height: 1.5; }
   .actions { margin-top: 12px; display: flex; gap: 10px; }
   .actions button { flex: 1; padding: 10px; border: 0; border-radius: 12px; color: #fff; font-size: 14px; font-weight: bold; }
@@ -61,15 +64,6 @@
   .btn-done { background: var(--blue); }
   .done-badge { color: var(--green); font-weight: bold; margin-top: 8px; font-size: 13px; }
   .empty { text-align: center; color: var(--main); margin-top: 50px; font-size: 16px; }
-
-  /* Sign-in */
-  #login { max-width: 380px; margin: 0 auto; min-height: 100vh; background: linear-gradient(180deg, var(--offwhite), var(--light)); padding: 40px 22px; text-align: center; }
-  #login .logo-big { width: 120px; height: 120px; border-radius: 50%; background: #fff; border: 4px solid #fff; box-shadow: 0 6px 18px rgba(216,24,96,.25); margin: 0 auto; }
-  #login h2 { color: var(--main); font-size: 30px; margin: 16px 0 0; }
-  #login .sub { color: #5a0f2e; margin-bottom: 22px; }
-  #login input, #settings input { width: 100%; padding: 14px; margin: 8px 0; font-size: 16px; border-radius: 16px; border: 1px solid var(--bright); background: #fff; color: #5a0f2e; }
-  #login button, #settings button, .primary { width: 100%; padding: 15px; margin-top: 12px; border: 0; border-radius: 16px; color: #fff; font-size: 17px; font-weight: bold; background: linear-gradient(135deg, var(--bright), var(--main)); box-shadow: 0 6px 14px rgba(216,24,96,.35); }
-  #error { color: var(--red); font-size: 14px; }
 
   /* Settings */
   #settings { margin: 14px; background: #fff; padding: 18px; border-radius: 18px; box-shadow: 0 4px 14px rgba(216,24,96,.12); }
@@ -83,9 +77,9 @@
   #alarmBox .box { background: #fff; padding: 26px; border-radius: 24px; text-align: center; max-width: 320px; width: 100%; color: #5a0f2e; box-shadow: 0 10px 40px rgba(216,24,96,.5); animation: pulse 1s infinite; }
   @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
   #alarmBox .bell { font-size: 60px; color: var(--red); }
-  #alarmBox h2 { color: #5a0f2e; margin: 8px 0 4px; font-size: 22px; }
+  #alarmBox h2 { margin: 8px 0 4px; font-size: 22px; }
   #alarmBox p { color: #7c5f6b; font-size: 14px; }
-  #alarmBox button { width: 100%; padding: 16px; background: var(--red); color: #fff; border: 0; border-radius: 14px; font-size: 18px; font-weight: bold; margin-top: 14px; box-shadow: 0 6px 16px rgba(244,67,54,.45); }
+  #alarmBox button { width: 100%; padding: 16px; background: var(--red); color: #fff; border: 0; border-radius: 14px; font-size: 18px; font-weight: bold; margin-top: 14px; }
 
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--main); color: #fff; padding: 12px 18px; border-radius: 14px; display: none; z-index: 100; }
 </style>
@@ -95,13 +89,14 @@
 <!-- Sign-in screen -->
 <div id="login">
   <img src="icon.png" class="logo-big" alt="SOFTIES">
-  <h2>SOFTIES</h2>
   <div class="sub">Owner sign-in</div>
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <button onclick="signIn()">Sign in &rarr;</button>
   <p id="error"></p>
-  <p style="color:var(--main);font-style:italic;margin-top:30px">Sweet Service. Always!</p>
+  <img src="cone.png" class="cone" alt="">
+  <div class="tag">Sweet Service. Always!</div>
+  <img src="wave.png" class="wave" alt="">
 </div>
 
 <!-- Main app -->
@@ -154,7 +149,7 @@
   </div>
 </div>
 
-<!-- Red alarm popup: stays until Stop -->
+<!-- Red alarm popup -->
 <div id="alarmBox">
   <div class="box">
     <div class="bell">&#128276;</div>
@@ -188,7 +183,6 @@ let countUnsub = null;
 let lastPendingCount = -1;
 let lastAlarmDate = '';
 
-// ---------- Sign-in ----------
 window.signIn = async () => {
   try {
     document.getElementById('error').textContent = '';
@@ -217,7 +211,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// ---------- Screens ----------
 function showOnly(id) {
   ['menu', 'listScreen', 'settingsScreen'].forEach((s) =>
     document.getElementById(s).classList.toggle('hidden', s !== id));
@@ -240,7 +233,6 @@ window.showTab = (tab) => {
   listen();
 };
 
-// ---------- Live counts on the dashboard ----------
 function watchCounts() {
   if (countUnsub) countUnsub();
   countUnsub = onSnapshot(query(collection(db, 'refunds'), where('status', '==', 'Pending')),
@@ -253,7 +245,6 @@ function watchCounts() {
     .catch(() => {});
 }
 
-// ---------- Live list ----------
 function listen() {
   if (unsubscribe) unsubscribe();
   const status = currentTab === 'Done' ? 'Done' : 'Pending';
@@ -305,7 +296,6 @@ ${escapeHtml(time)}</div>`;
   });
 }
 
-// ---------- Actions ----------
 function openWhatsApp(phone, upi) {
   let digits = String(phone).replace(/\D/g, '');
   if (digits.length === 10) digits = '91' + digits;
@@ -322,7 +312,6 @@ async function markDoneOne(id) {
   }
 }
 
-// ---------- New request alarm ----------
 function checkNewRequests(count) {
   if (lastPendingCount !== -1 && count > lastPendingCount) {
     ringAlarm('A customer has requested a refund from the vending machine.');
@@ -330,7 +319,6 @@ function checkNewRequests(count) {
   lastPendingCount = count;
 }
 
-// ---------- Alarm (sound + popup, stays until Stop) ----------
 window.ringAlarm = (text) => {
   document.getElementById('alarmText').textContent = text;
   document.getElementById('alarmBox').style.display = 'flex';
@@ -347,7 +335,6 @@ window.stopAlarm = () => {
   document.getElementById('alarmBox').style.display = 'none';
 };
 
-// ---------- Reminder time (saved on the phone) ----------
 const DEFAULT_TIME = '22:00';
 const getReminderTime = () => localStorage.getItem('reminderTime') || DEFAULT_TIME;
 
@@ -390,7 +377,6 @@ function startReminderCheck() {
   }, 30000);
 }
 
-// ---------- Notifications and helpers ----------
 function askNotificationPermission() {
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
