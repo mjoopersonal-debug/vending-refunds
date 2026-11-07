@@ -22,6 +22,11 @@ jobs:
         run: |
           flutter create --org com.softies --project-name vending_refunds --platforms android .
 
+      - name: Copy Firebase file into the Android app
+        run: |
+          cp "$GITHUB_WORKSPACE/android/app/google-services.json" android/app/google-services.json
+          ls -la android/app/google-services.json
+
       - name: Patch Android for alarms and Firebase
         run: |
           python3 - << 'PYEOF'
@@ -49,6 +54,14 @@ jobs:
               open(r, 'w').write(u)
           print('patched')
           PYEOF
+
+      - name: Copy app source into the project
+        run: |
+          rm -rf lib
+          cp -r "$GITHUB_WORKSPACE/lib" lib
+          mkdir -p assets
+          cp -r "$GITHUB_WORKSPACE/assets/." assets/
+          cp "$GITHUB_WORKSPACE/pubspec.yaml" pubspec.yaml
 
       - name: Build the APK
         run: |
