@@ -50,14 +50,6 @@ jobs:
           print('patched')
           PYEOF
 
-      - name: Copy app source into the project
-        run: |
-          rm -rf lib
-          cp -r "$GITHUB_WORKSPACE/lib" lib
-          mkdir -p assets
-          cp -r "$GITHUB_WORKSPACE/assets/." assets/
-          cp "$GITHUB_WORKSPACE/pubspec.yaml" pubspec.yaml
-
       - name: Build the APK
         run: |
           flutter pub get
