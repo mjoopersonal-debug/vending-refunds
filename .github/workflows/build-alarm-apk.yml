@@ -50,6 +50,12 @@ jobs:
           print('patched')
           PYEOF
 
+      - name: Show Firebase settings
+        run: |
+          grep -n "google" android/app/build.gradle.kts || echo "NO google plugin in app gradle"
+          grep -n "google" android/settings.gradle.kts || echo "NO google plugin in settings gradle"
+          ls -la android/app/google-services.json || echo "NO google-services.json"
+
       - name: Build the APK
         run: |
           flutter pub get
