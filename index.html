@@ -23,8 +23,10 @@
   .btn-done { background: #1565c0; }
   .empty { text-align: center; color: #777; margin-top: 40px; }
   #login { max-width: 320px; margin: 80px auto; background: #fff; padding: 20px; border-radius: 8px; }
-  #login input { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; }
-  #login button { width: 100%; padding: 12px; background: #2e7d32; color: #fff; border: 0; border-radius: 6px; font-size: 16px; }
+  #login input, #settings input { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; font-size: 16px; }
+  #login button, #settings button { width: 100%; padding: 12px; background: #2e7d32; color: #fff; border: 0; border-radius: 6px; font-size: 16px; margin-top: 6px; }
+  #settings { background: #fff; margin: 10px; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  #settings .note { color: #555; font-size: 14px; margin-top: 10px; }
   #error { color: #d32f2f; font-size: 14px; }
   .hidden { display: none; }
   #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 16px; border-radius: 6px; display: none; }
@@ -48,8 +50,17 @@
   <div class="tabs">
     <button id="tabPending" class="active" onclick="showTab('Pending')">Pending</button>
     <button id="tabDone" onclick="showTab('Done')">Done</button>
+    <button id="tabSettings" onclick="showTab('Settings')">Settings</button>
   </div>
   <div id="list"></div>
+  <div id="settings" class="hidden">
+    <h3>Reminder time</h3>
+    <p>The alarm checks for Pending refunds at this time every day.</p>
+    <input id="reminderTime" type="time">
+    <button onclick="saveReminderTime()">Save time</button>
+    <button onclick="testAlarm()" style="background:#1565c0">Test alarm now</button>
+    <p class="note" id="savedNote"></p>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -59,7 +70,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDocs, writeBatch }
+import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDocs }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -72,7 +83,7 @@ const auth = getAuth(app);
 let currentTab = 'Pending';
 let unsubscribe = null;
 let lastPendingCount = -1;
-let pendingCountNow = 0;
+let lastAlarmDate = '';
 
 // ---------- Sign-in ----------
 window.signIn = async () => {
@@ -93,7 +104,7 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('app').classList.remove('hidden');
     askNotificationPermission();
     listen();
-    scheduleNightlyCheck();
+    startReminderCheck();
   } else {
     document.getElementById('login').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
@@ -101,29 +112,39 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// ---------- Tabs and live list ----------
-window.showTab = (status) => {
-  currentTab = status;
-  document.getElementById('tabPending').classList.toggle('active', status === 'Pending');
-  document.getElementById('tabDone').classList.toggle('active', status === 'Done');
-  listen();
+// ---------- Tabs ----------
+window.showTab = (tab) => {
+  currentTab = tab;
+  document.getElementById('tabPending').classList.toggle('active', tab === 'Pending');
+  document.getElementById('tabDone').classList.toggle('active', tab === 'Done');
+  document.getElementById('tabSettings').classList.toggle('active', tab === 'Settings');
+  const isSettings = tab === 'Settings';
+  document.getElementById('settings').classList.toggle('hidden', !isSettings);
+  document.getElementById('list').classList.toggle('hidden', isSettings);
+  if (isSettings) {
+    loadReminderTime();
+  } else {
+    listen();
+  }
 };
 
+// ---------- Live list ----------
 function listen() {
   if (unsubscribe) unsubscribe();
+  const status = currentTab === 'Done' ? 'Done' : 'Pending';
   const q = query(collection(db, 'refunds'),
-    where('status', '==', currentTab),
+    where('status', '==', status),
     orderBy('time', 'desc'));
   unsubscribe = onSnapshot(q, (snap) => {
-    if (currentTab === 'Pending') checkNewRequests(snap.size);
-    renderList(snap);
+    if (status === 'Pending') checkNewRequests(snap.size);
+    renderList(snap, status);
   }, (err) => showToast('Error: ' + err.message));
 }
 
-function renderList(snap) {
+function renderList(snap, status) {
   const list = document.getElementById('list');
   if (snap.empty) {
-    list.innerHTML = `<div class="empty">No ${currentTab} refunds</div>`;
+    list.innerHTML = `<div class="empty">No ${status} refunds</div>`;
     return;
   }
   list.innerHTML = '';
@@ -131,13 +152,13 @@ function renderList(snap) {
     const r = d.data();
     const time = r.time && r.time.toDate ? r.time.toDate().toLocaleString() : '';
     const card = document.createElement('div');
-    card.className = 'card' + (currentTab === 'Done' ? ' done' : '');
+    card.className = 'card' + (status === 'Done' ? ' done' : '');
     card.innerHTML = `
       <div class="phone">${escapeHtml(r.phone || '')}</div>
       <div class="meta">UPI: ${escapeHtml(r.upiId || '')}
 Issue: ${escapeHtml(r.issue || '')}
 ${escapeHtml(time)}</div>`;
-    if (currentTab === 'Pending') {
+    if (status === 'Pending') {
       const actions = document.createElement('div');
       actions.className = 'actions';
       const chat = document.createElement('button');
@@ -173,7 +194,7 @@ async function markDoneOne(id) {
   }
 }
 
-// ---------- Alarm for new requests ----------
+// ---------- New request alarm ----------
 function checkNewRequests(count) {
   if (lastPendingCount !== -1 && count > lastPendingCount) {
     playAlarm();
@@ -181,7 +202,57 @@ function checkNewRequests(count) {
     notify('New refund request', 'A customer has requested a refund.');
   }
   lastPendingCount = count;
-  pendingCountNow = count;
+}
+
+// ---------- Reminder time (saved on the phone) ----------
+const DEFAULT_TIME = '22:00';
+
+function getReminderTime() {
+  return localStorage.getItem('reminderTime') || DEFAULT_TIME;
+}
+
+function loadReminderTime() {
+  const t = getReminderTime();
+  document.getElementById('reminderTime').value = t;
+  document.getElementById('savedNote').textContent = 'Current reminder time: ' + t;
+}
+
+window.saveReminderTime = () => {
+  const t = document.getElementById('reminderTime').value;
+  if (!t) {
+    showToast('Please choose a time');
+    return;
+  }
+  localStorage.setItem('reminderTime', t);
+  lastAlarmDate = '';
+  document.getElementById('savedNote').textContent = 'Saved. Reminder time: ' + t;
+  showToast('Reminder time saved');
+};
+
+window.testAlarm = () => checkPendingAndAlarm(true);
+
+function startReminderCheck() {
+  // Checks every 30 seconds whether it is the chosen time
+  setInterval(() => {
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const today = now.toDateString();
+    if (hhmm === getReminderTime() && lastAlarmDate !== today) {
+      lastAlarmDate = today;
+      checkPendingAndAlarm(false);
+    }
+  }, 30000);
+}
+
+async function checkPendingAndAlarm(isTest) {
+  const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
+  if (snap.size > 0) {
+    playAlarm();
+    notify('Pending refunds', `${snap.size} refund(s) still pending. Please pay and mark them Done.`);
+    showToast(`${snap.size} refund(s) still pending`);
+  } else if (isTest) {
+    showToast('No pending refunds');
+  }
 }
 
 function playAlarm() {
@@ -200,21 +271,6 @@ function notify(title, body) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body });
   }
-}
-
-// ---------- 10 PM reminder (runs while the app is open) ----------
-function scheduleNightlyCheck() {
-  setInterval(async () => {
-    const now = new Date();
-    if (now.getHours() === 22 && now.getMinutes() === 0) {
-      const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
-      if (snap.size > 0) {
-        playAlarm();
-        notify('Pending refunds', `${snap.size} refund(s) still pending. Please pay and mark them Done.`);
-        showToast(`${snap.size} refund(s) still pending`);
-      }
-    }
-  }, 60000);
 }
 
 // ---------- Helpers ----------
