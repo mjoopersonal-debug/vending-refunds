@@ -212,15 +212,27 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
+let atMenu = true;
+
 function showOnly(id) {
+  if (id !== 'menu' && atMenu) history.pushState({ screen: id }, '');
+  atMenu = (id === 'menu');
   ['menu', 'listScreen', 'settingsScreen'].forEach((s) =>
     document.getElementById(s).classList.toggle('hidden', s !== id));
 }
 
 window.goHome = () => {
   if (unsubscribe) unsubscribe();
+  if (!atMenu) { history.back(); return; }
   showOnly('menu');
 };
+
+// Phone Back key and the in-app Back button both return to the home menu
+window.addEventListener('popstate', () => {
+  if (unsubscribe) unsubscribe();
+  atMenu = true;
+  showOnly('menu');
+});
 
 window.showTab = (tab) => {
   currentTab = tab;
