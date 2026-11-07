@@ -1,6 +1,6 @@
 {
   "appId": "com.softies.vendingrefunds",
-  "appName": "Vending Refunds",
+  "appName": "Softies Refunds",
   "webDir": ".",
   "server": {
     "androidScheme": "https"
