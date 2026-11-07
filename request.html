@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2e7d32">
+<title>Request a Refund</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f4; }
+  header { background: #2e7d32; color: #fff; padding: 16px; font-size: 20px; text-align: center; }
+  form { background: #fff; margin: 16px; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  label { display: block; margin-top: 12px; font-weight: bold; }
+  input, textarea { width: 100%; padding: 10px; margin-top: 4px; box-sizing: border-box; font-size: 16px; border: 1px solid #bbb; border-radius: 4px; }
+  button { width: 100%; margin-top: 18px; padding: 14px; background: #2e7d32; color: #fff; border: 0; border-radius: 6px; font-size: 17px; }
+  button:disabled { background: #999; }
+  .hint { color: #666; font-size: 13px; margin-top: 4px; }
+  #msg { text-align: center; margin: 20px; font-size: 17px; }
+  .ok { color: #2e7d32; }
+  .err { color: #d32f2f; }
+</style>
+</head>
+<body>
+
+<header>Request a Refund</header>
+
+<form id="refundForm">
+  <label for="phone">Your mobile number</label>
+  <input id="phone" type="tel" inputmode="numeric" placeholder="9876543210" required>
+  <div class="hint">10 digits, without +91</div>
+
+  <label for="upi">Your UPI ID</label>
+  <input id="upi" type="text" placeholder="name@upi" required>
+
+  <label for="issue">What happened?</label>
+  <textarea id="issue" rows="3" placeholder="Machine took my money, no item came out" required></textarea>
+
+  <label for="amount">Amount paid (optional)</label>
+  <input id="amount" type="number" inputmode="decimal" placeholder="e.g. 20">
+
+  <button id="submitBtn" type="submit">Submit request</button>
+</form>
+
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const db = getFirestore(initializeApp(firebaseConfig));
+
+// Simple limit: one submission per browser every 2 minutes
+const COOLDOWN_MS = 2 * 60 * 1000;
+
+document.getElementById('refundForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('submitBtn');
+
+  const last = Number(localStorage.getItem('lastRefundSubmit') || 0);
+  if (Date.now() - last < COOLDOWN_MS) {
+    msg.className = 'err';
+    msg.textContent = 'Please wait a couple of minutes before sending another request.';
+    return;
+  }
+
+  const digits = document.getElementById('phone').value.replace(/\D/g, '');
+  if (digits.length !== 10) {
+    msg.className = 'err';
+    msg.textContent = 'Please enter a 10-digit mobile number.';
+    return;
+  }
+  const upi = document.getElementById('upi').value.trim();
+  const issue = document.getElementById('issue').value.trim();
+  const amount = document.getElementById('amount').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    await addDoc(collection(db, 'refunds'), {
+      phone: '91' + digits,
+      upiId: upi.slice(0, 60),
+      issue: issue.slice(0, 500),
+      status: 'Pending',
+      time: serverTimestamp(),
+      amount: amount ? Number(amount) : null
+    });
+    localStorage.setItem('lastRefundSubmit', String(Date.now()));
+    msg.className = 'ok';
+    msg.textContent = 'Request received. Our team will contact you soon. Thank you!';
+    e.target.reset();
+  } catch (err) {
+    msg.className = 'err';
+    msg.textContent = 'Could not send. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit request';
+  }
+});
+</script>
+</body>
+</html>
