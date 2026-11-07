@@ -25,8 +25,7 @@ jobs:
       - name: Patch Android for alarms and Firebase
         run: |
           python3 - << 'PYEOF'
-          import re, os, shutil
-          # 1. Manifest: alarm permissions and lock-screen settings
+          import re
           p = 'android/app/src/main/AndroidManifest.xml'
           s = open(p).read()
           perms = ['SCHEDULE_EXACT_ALARM','USE_EXACT_ALARM','POST_NOTIFICATIONS','WAKE_LOCK','VIBRATE','USE_FULL_SCREEN_INTENT','RECEIVE_BOOT_COMPLETED','FOREGROUND_SERVICE','FOREGROUND_SERVICE_MEDIA_PLAYBACK','REQUEST_IGNORE_BATTERY_OPTIMIZATIONS','INTERNET']
@@ -34,7 +33,6 @@ jobs:
           s = s.replace('<application', add + '    <application', 1)
           s = s.replace('<activity', '<activity android:showWhenLocked="true" android:turnScreenOn="true"', 1)
           open(p, 'w').write(s)
-          # 2. Gradle: minSdk 26, compileSdk 36, package name, Google Services plugin
           g = 'android/app/build.gradle.kts'
           t = open(g).read()
           t = re.sub(r'minSdk\s*=\s*flutter\.minSdkVersion', 'minSdk = 26', t)
@@ -44,22 +42,13 @@ jobs:
           if 'google-services' not in t:
               t = t.replace('id("dev.flutter.flutter-gradle-plugin")', 'id("dev.flutter.flutter-gradle-plugin")\n    id("com.google.gms.google-services")', 1)
           open(g, 'w').write(t)
-          # 3. Root Gradle: declare the Google Services plugin
           r = 'android/settings.gradle.kts'
           u = open(r).read()
           if 'google-services' not in u:
               u = u.replace('id("org.jetbrains.kotlin.android")', 'id("com.google.gms.google-services") version "4.4.2" apply false\n    id("org.jetbrains.kotlin.android")', 1)
               open(r, 'w').write(u)
-          # 4. Copy the Firebase file into the app
-          shutil.copy('android/app/google-services.json', 'android/app/google-services.json') if os.path.exists('android/app/google-services.json') else print('google-services.json missing')
           print('patched')
           PYEOF
-
-      - name: Copy app files
-        run: |
-          cp -r $GITHUB_WORKSPACE/lib/. lib/
-          cp -r $GITHUB_WORKSPACE/assets/. assets/
-          cp $GITHUB_WORKSPACE/pubspec.yaml pubspec.yaml
 
       - name: Build the APK
         run: |
