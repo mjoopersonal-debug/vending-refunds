@@ -1,633 +1,310 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<meta name="theme-color" content="#2e7d32">
-
+<meta name="theme-color" content="#0b4fd6">
 <link rel="manifest" href="manifest.json">
-
-<title>Vending Refunds</title>
-
+<title>SOFTIES Vending Refunds</title>
 <style>
-
-  body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f4; }
-
-  header { background: #2e7d32; color: #fff; padding: 14px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
-
-  header button { background: #fff; color: #2e7d32; border: 0; padding: 6px 10px; border-radius: 4px; }
-
-  .tabs { display: flex; background: #fff; }
-
-  .tabs button { flex: 1; padding: 12px; border: 0; background: none; font-size: 16px; border-bottom: 3px solid transparent; }
-
-  .tabs button.active { border-bottom-color: #2e7d32; color: #2e7d32; font-weight: bold; }
-
-  .card { background: #fff; margin: 10px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); border-left: 6px solid #d32f2f; }
-
-  .card.done { border-left-color: #2e7d32; }
-
-  .card .phone { font-size: 18px; font-weight: bold; }
-
-  .card .meta { color: #555; font-size: 14px; margin-top: 4px; white-space: pre-line; }
-
-  .actions { margin-top: 10px; display: flex; gap: 8px; }
-
-  .actions button { flex: 1; padding: 10px; border: 0; border-radius: 6px; color: #fff; font-size: 15px; }
-
-  .btn-chat { background: #25d366; }
-
-  .btn-done { background: #1565c0; }
-
-  .empty { text-align: center; color: #777; margin-top: 40px; }
-
-  #login { max-width: 320px; margin: 80px auto; background: #fff; padding: 20px; border-radius: 8px; }
-
-  #login input, #settings input { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; font-size: 16px; }
-
-  #login button, #settings button { width: 100%; padding: 12px; background: #2e7d32; color: #fff; border: 0; border-radius: 6px; font-size: 16px; margin-top: 6px; }
-
-  #settings { background: #fff; margin: 10px; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-
-  #settings .note { color: #555; font-size: 14px; margin-top: 10px; }
-
-  #error { color: #d32f2f; font-size: 14px; }
-
-  .hidden { display: none; }
-
-  #alarmBox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 99; align-items: center; justify-content: center; }
-
-  #alarmBox .box { background: #fff; padding: 24px; border-radius: 12px; text-align: center; max-width: 300px; }
-
-  #alarmBox h2 { color: #d32f2f; margin-top: 0; }
-
-  #alarmBox button { width: 100%; padding: 14px; background: #d32f2f; color: #fff; border: 0; border-radius: 8px; font-size: 18px; margin-top: 12px; }
-
-  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 16px; border-radius: 6px; display: none; z-index: 100; }
-
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; min-height: 100vh; background: linear-gradient(180deg, #0a2a6b 0%, #06164a 60%, #041033 100%); color: #fff; }
+  header { background: linear-gradient(90deg, #0b4fd6, #1e88ff); padding: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(30,136,255,.5); font-size: 20px; font-weight: bold; }
+  .logo { width: 36px; height: 36px; border-radius: 50%; vertical-align: middle; margin-right: 8px; box-shadow: 0 0 12px #5ac8ff; }
+  header button { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.4); padding: 6px 12px; border-radius: 20px; font-size: 14px; }
+  .tabs { display: flex; gap: 8px; padding: 12px; }
+  .tabs button { flex: 1; padding: 12px; border: 0; border-radius: 14px; background: rgba(255,255,255,.08); color: #9fc3ff; font-size: 15px; }
+  .tabs button.active { background: linear-gradient(135deg, #1e88ff, #0b4fd6); color: #fff; box-shadow: 0 0 16px rgba(30,136,255,.7); }
+  .card { background: linear-gradient(135deg, #0f3a8a, #0a2566); margin: 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(90,200,255,.3); box-shadow: 0 0 18px rgba(30,136,255,.35); border-left: 6px solid #ff4d4d; }
+  .card.done { border-left-color: #22c55e; box-shadow: 0 0 18px rgba(34,197,94,.35); }
+  .card .phone { font-size: 18px; font-weight: bold; color: #fff; }
+  .card .meta { color: #b9d6ff; font-size: 13px; margin-top: 6px; white-space: pre-line; line-height: 1.5; }
+  .actions { margin-top: 12px; display: flex; gap: 10px; }
+  .actions button { flex: 1; padding: 11px; border: 0; border-radius: 12px; color: #fff; font-size: 15px; font-weight: bold; }
+  .btn-chat { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 12px rgba(34,197,94,.6); }
+  .btn-done { background: linear-gradient(135deg, #1e88ff, #0b4fd6); box-shadow: 0 0 12px rgba(30,136,255,.7); }
+  .empty { text-align: center; color: #9fc3ff; margin-top: 60px; font-size: 16px; }
+  #login { max-width: 340px; margin: 70px auto; background: linear-gradient(160deg, #0f3a8a, #071d55); padding: 24px; border-radius: 20px; border: 1px solid rgba(90,200,255,.35); box-shadow: 0 0 30px rgba(30,136,255,.4); }
+  #login h3 { margin-top: 0; font-size: 20px; text-align: center; }
+  #login input, #settings input { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border-radius: 12px; border: 1px solid rgba(90,200,255,.4); background: rgba(255,255,255,.08); color: #fff; color-scheme: dark; }
+  #login button, #settings button { width: 100%; padding: 13px; margin-top: 8px; border: 0; border-radius: 12px; color: #fff; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #1e88ff, #0b4fd6); box-shadow: 0 0 16px rgba(30,136,255,.6); }
+  #settings { background: linear-gradient(160deg, #0f3a8a, #071d55); margin: 12px; padding: 18px; border-radius: 18px; border: 1px solid rgba(90,200,255,.3); box-shadow: 0 0 20px rgba(30,136,255,.35); }
+  #settings h3 { margin-top: 0; }
+  #settings .note { color: #9fc3ff; font-size: 14px; margin-top: 12px; }
+  #error { color: #ff6b6b; font-size: 14px; }
+  .hidden { display: none !important; }
+  #alarmBox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 99; align-items: center; justify-content: center; padding: 16px; }
+  #alarmBox .box { background: linear-gradient(160deg, #ffffff, #ffe3e3); padding: 26px; border-radius: 20px; text-align: center; max-width: 310px; width: 100%; color: #7a0000; box-shadow: 0 0 40px rgba(255,60,60,.8); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  #alarmBox .bell { font-size: 56px; }
+  #alarmBox h2 { color: #d10000; margin: 8px 0; }
+  #alarmBox button { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff3b3b, #c40000); color: #fff; border: 0; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 12px; box-shadow: 0 0 18px rgba(255,0,0,.7); }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #1e88ff, #0b4fd6); color: #fff; padding: 12px 18px; border-radius: 14px; display: none; z-index: 100; box-shadow: 0 0 18px rgba(30,136,255,.7); }
 </style>
-
 </head>
-
 <body>
 
-
-
-
 <div id="login">
-
-  <h3>Owner sign-in</h3>
-
-  <input id="email" type="email" placeholder="Email">
-
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="signIn()">Sign in</button>
-
-  <p id="error"></p>
-
+  <h3><img src="icon.png" class="logo" style="width:56px;height:56px;vertical-align:middle">SOFTIES<br><small style="font-weight:normal;color:#9fc3ff">Owner sign-in</small></h3>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="signIn()">Sign in</button>
+  <p id="error"></p>
 </div>
-
-
-
 
 <div id="app" class="hidden">
-
-  <header>
-
-    <span>Vending Refunds</span>
-
-    <button onclick="signOutOwner()">Sign out</button>
-
-  </header>
-
-  <div class="tabs">
-
-    <button id="tabPending" class="active" onclick="showTab('Pending')">Pending</button>
-
-    <button id="tabDone" onclick="showTab('Done')">Done</button>
-
-    <button id="tabSettings" onclick="showTab('Settings')">Settings</button>
-
-  </div>
-
-  <div id="list"></div>
-
-  <div id="settings" class="hidden">
-
-    <h3>Reminder time</h3>
-
-    <p>The alarm checks for Pending refunds at this time every day.</p>
-
-    <input id="reminderTime" type="time">
-
-    <button onclick="saveReminderTime()">Save time</button>
-
-    <button onclick="testAlarm()" style="background:#1565c0">Test alarm now</button>
-
-    <p class="note" id="savedNote"></p>
-
-  </div>
-
+  <header>
+    <span><img src="icon.png" class="logo">SOFTIES</span>
+    <button onclick="signOutOwner()">Sign out</button>
+  </header>
+  <div class="tabs">
+    <button id="tabPending" class="active" onclick="showTab('Pending')">Pending</button>
+    <button id="tabDone" onclick="showTab('Done')">Done</button>
+    <button id="tabSettings" onclick="showTab('Settings')">Settings</button>
+  </div>
+  <div id="list"></div>
+  <div id="settings" class="hidden">
+    <h3>Reminder time</h3>
+    <p style="color:#9fc3ff">The alarm checks for Pending refunds at this time every day.</p>
+    <input id="reminderTime" type="time">
+    <button onclick="saveReminderTime()">Save time</button>
+    <button onclick="testAlarm()" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">Test alarm now</button>
+    <p class="note" id="savedNote"></p>
+  </div>
 </div>
-
-
-
 
 <!-- Full-screen alarm popup: stays until you tap Stop -->
-
 <div id="alarmBox">
-
-  <div class="box">
-
-    <h2>REFUND ALARM</h2>
-
-    <p id="alarmText"></p>
-
-    <button onclick="stopAlarm()">STOP ALARM</button>
-
-  </div>
-
+  <div class="box">
+    <div class="bell">🔔</div>
+    <h2>REFUND ALARM</h2>
+    <p id="alarmText"></p>
+    <button onclick="stopAlarm()">STOP ALARM</button>
+  </div>
 </div>
-
-
-
 
 <div id="toast"></div>
 
-
-
-
-<!-- Real alarm tone (repeats until stopped) -->
-
+<!-- Alarm tone (repeats until stopped) -->
 <audio id="alarmSound" preload="auto" loop>
-
-  <source src="alarm.mp3" type="audio/mpeg">
-
+  <source src="alarm.mp3" type="audio/mpeg">
 </audio>
 
-
-
-
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
 import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDocs }
-
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-
-
-
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
-
 const auth = getAuth(app);
 
-
-
-
 let currentTab = 'Pending';
-
 let unsubscribe = null;
-
 let lastPendingCount = -1;
-
 let lastAlarmDate = '';
 
-
-
-
 // ---------- Sign-in ----------
-
 window.signIn = async () => {
-
-  try {
-
-    document.getElementById('error').textContent = '';
-
-    await signInWithEmailAndPassword(auth,
-
-      document.getElementById('email').value.trim(),
-
-      document.getElementById('password').value);
-
-  } catch (e) {
-
-    document.getElementById('error').textContent = 'Sign-in failed. Check email and password.';
-
-  }
-
+  try {
+    document.getElementById('error').textContent = '';
+    await signInWithEmailAndPassword(auth,
+      document.getElementById('email').value.trim(),
+      document.getElementById('password').value);
+  } catch (e) {
+    document.getElementById('error').textContent = 'Sign-in failed. Check email and password.';
+  }
 };
-
 window.signOutOwner = () => signOut(auth);
 
-
-
-
 onAuthStateChanged(auth, (user) => {
-
-  if (user) {
-
-    document.getElementById('login').classList.add('hidden');
-
-    document.getElementById('app').classList.remove('hidden');
-
-    askNotificationPermission();
-
-    listen();
-
-    startReminderCheck();
-
-  } else {
-
-    document.getElementById('login').classList.remove('hidden');
-
-    document.getElementById('app').classList.add('hidden');
-
-    if (unsubscribe) unsubscribe();
-
-  }
-
+  if (user) {
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    askNotificationPermission();
+    listen();
+    startReminderCheck();
+  } else {
+    document.getElementById('login').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    if (unsubscribe) unsubscribe();
+  }
 });
 
-
-
-
 // ---------- Tabs ----------
-
 window.showTab = (tab) => {
-
-  currentTab = tab;
-
-  document.getElementById('tabPending').classList.toggle('active', tab === 'Pending');
-
-  document.getElementById('tabDone').classList.toggle('active', tab === 'Done');
-
-  document.getElementById('tabSettings').classList.toggle('active', tab === 'Settings');
-
-  document.getElementById('settings').classList.toggle('hidden', tab !== 'Settings');
-
-  document.getElementById('list').classList.toggle('hidden', tab === 'Settings');
-
-  if (tab === 'Settings') loadReminderTime(); else listen();
-
+  currentTab = tab;
+  document.getElementById('tabPending').classList.toggle('active', tab === 'Pending');
+  document.getElementById('tabDone').classList.toggle('active', tab === 'Done');
+  document.getElementById('tabSettings').classList.toggle('active', tab === 'Settings');
+  document.getElementById('settings').classList.toggle('hidden', tab !== 'Settings');
+  document.getElementById('list').classList.toggle('hidden', tab === 'Settings');
+  if (tab === 'Settings') loadReminderTime(); else listen();
 };
-
-
-
 
 // ---------- Live list ----------
-
 function listen() {
-
-  if (unsubscribe) unsubscribe();
-
-  const status = currentTab === 'Done' ? 'Done' : 'Pending';
-
-  const q = query(collection(db, 'refunds'), where('status', '==', status), orderBy('time', 'desc'));
-
-  unsubscribe = onSnapshot(q, (snap) => {
-
-    if (status === 'Pending') checkNewRequests(snap.size);
-
-    renderList(snap, status);
-
-  }, (err) => showToast('Error: ' + err.message));
-
+  if (unsubscribe) unsubscribe();
+  const status = currentTab === 'Done' ? 'Done' : 'Pending';
+  const q = query(collection(db, 'refunds'), where('status', '==', status), orderBy('time', 'desc'));
+  unsubscribe = onSnapshot(q, (snap) => {
+    if (status === 'Pending') checkNewRequests(snap.size);
+    renderList(snap, status);
+  }, (err) => showToast('Error: ' + err.message));
 }
-
-
-
 
 function renderList(snap, status) {
-
-  const list = document.getElementById('list');
-
-  if (snap.empty) {
-
-    list.innerHTML = <div class="empty">No ${status} refunds</div>;
-
-    return;
-
-  }
-
-  list.innerHTML = '';
-
-  snap.forEach((d) => {
-
-    const r = d.data();
-
-    const time = r.time && r.time.toDate ? r.time.toDate().toLocaleString() : '';
-
-    const card = document.createElement('div');
-
-    card.className = 'card' + (status === 'Done' ? ' done' : '');
-
-    card.innerHTML = `
-
-      <div class="phone">${escapeHtml(r.phone || '')}</div>
-
-      <div class="meta">UPI: ${escapeHtml(r.upiId || '')}
-
+  const list = document.getElementById('list');
+  if (snap.empty) {
+    list.innerHTML = `<div class="empty">No ${status} refunds</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  snap.forEach((d) => {
+    const r = d.data();
+    const time = r.time && r.time.toDate ? r.time.toDate().toLocaleString() : '';
+    const card = document.createElement('div');
+    card.className = 'card' + (status === 'Done' ? ' done' : '');
+    card.innerHTML = `
+      <div class="phone">${escapeHtml(r.phone || '')}</div>
+      <div class="meta">UPI: ${escapeHtml(r.upiId || '')}
 Issue: ${escapeHtml(r.issue || '')}
-
 ${escapeHtml(time)}</div>`;
-
-    if (status === 'Pending') {
-
-      const actions = document.createElement('div');
-
-      actions.className = 'actions';
-
-      const chat = document.createElement('button');
-
-      chat.className = 'btn-chat';
-
-      chat.textContent = 'WhatsApp';
-
-      chat.onclick = () => openWhatsApp(r.phone, r.upiId);
-
-      const done = document.createElement('button');
-
-      done.className = 'btn-done';
-
-      done.textContent = 'Mark Done';
-
-      done.onclick = () => markDoneOne(d.id);
-
-      actions.append(chat, done);
-
-      card.append(actions);
-
-    }
-
-    list.append(card);
-
-  });
-
+    if (status === 'Pending') {
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const chat = document.createElement('button');
+      chat.className = 'btn-chat';
+      chat.textContent = 'WhatsApp';
+      chat.onclick = () => openWhatsApp(r.phone, r.upiId);
+      const done = document.createElement('button');
+      done.className = 'btn-done';
+      done.textContent = 'Mark Done';
+      done.onclick = () => markDoneOne(d.id);
+      actions.append(chat, done);
+      card.append(actions);
+    }
+    list.append(card);
+  });
 }
-
-
-
 
 // ---------- Actions ----------
-
 function openWhatsApp(phone, upi) {
-
-  let digits = String(phone).replace(/\D/g, '');
-
-  if (digits.length === 10) digits = '91' + digits;
-
-  const msg = encodeURIComponentHi, this is Softies Vending about your refund. We are processing it to UPI ID ${upi}.);
-
-  window.openhttps://wa.me/${digits}?text=${msg}, '_blank');
-
+  let digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 10) digits = '91' + digits;
+  const msg = encodeURIComponent(`Hi, this is Softies Vending about your refund. We are processing it to UPI ID ${upi}.`);
+  window.open(`https://wa.me/${digits}?text=${msg}`, '_blank');
 }
-
-
-
 
 async function markDoneOne(id) {
-
-  try {
-
-    await updateDoc(doc(db, 'refunds', id), { status: 'Done' });
-
-    showToast('Marked as Done');
-
-  } catch (e) {
-
-    showToast('Could not mark done: ' + e.message);
-
-  }
-
+  try {
+    await updateDoc(doc(db, 'refunds', id), { status: 'Done' });
+    showToast('Marked as Done');
+  } catch (e) {
+    showToast('Could not mark done: ' + e.message);
+  }
 }
-
-
-
 
 // ---------- New request alarm ----------
-
 function checkNewRequests(count) {
-
-  if (lastPendingCount !== -1 && count > lastPendingCount) {
-
-    ringAlarm('New refund request! Please check the Pending list.');
-
-  }
-
-  lastPendingCount = count;
-
+  if (lastPendingCount !== -1 && count > lastPendingCount) {
+    ringAlarm('New refund request! Please check the Pending list.');
+  }
+  lastPendingCount = count;
 }
-
-
-
 
 // ---------- Alarm (sound + popup, stays until Stop) ----------
-
 window.ringAlarm = (text) => {
-
-  document.getElementById('alarmText').textContent = text;
-
-  document.getElementById('alarmBox').style.display = 'flex';
-
-  const a = document.getElementById('alarmSound');
-
-  a.currentTime = 0;
-
-  a.play().catch(() => showToast('Tap STOP ALARM. Sound was blocked by the phone.'));
-
-  notify('Refund alarm', text);
-
+  document.getElementById('alarmText').textContent = text;
+  document.getElementById('alarmBox').style.display = 'flex';
+  const a = document.getElementById('alarmSound');
+  a.currentTime = 0;
+  a.play().catch(() => showToast('Tap STOP ALARM. Sound was blocked by the phone.'));
+  notify('Refund alarm', text);
 };
-
-
-
 
 window.stopAlarm = () => {
-
-  const a = document.getElementById('alarmSound');
-
-  a.pause();
-
-  a.currentTime = 0;
-
-  document.getElementById('alarmBox').style.display = 'none';
-
+  const a = document.getElementById('alarmSound');
+  a.pause();
+  a.currentTime = 0;
+  document.getElementById('alarmBox').style.display = 'none';
 };
-
-
-
 
 // ---------- Reminder time (saved on the phone) ----------
-
 const DEFAULT_TIME = '22:00';
-
 const getReminderTime = () => localStorage.getItem('reminderTime') || DEFAULT_TIME;
 
-
-
-
 function loadReminderTime() {
-
-  const t = getReminderTime();
-
-  document.getElementById('reminderTime').value = t;
-
-  document.getElementById('savedNote').textContent = 'Current reminder time: ' + t;
-
+  const t = getReminderTime();
+  document.getElementById('reminderTime').value = t;
+  document.getElementById('savedNote').textContent = 'Current reminder time: ' + t;
 }
-
-
-
 
 window.saveReminderTime = () => {
-
-  const t = document.getElementById('reminderTime').value;
-
-  if (!t) { showToast('Please choose a time'); return; }
-
-  localStorage.setItem('reminderTime', t);
-
-  lastAlarmDate = '';
-
-  document.getElementById('savedNote').textContent = 'Saved. Reminder time: ' + t;
-
-  showToast('Reminder time saved');
-
+  const t = document.getElementById('reminderTime').value;
+  if (!t) { showToast('Please choose a time'); return; }
+  localStorage.setItem('reminderTime', t);
+  lastAlarmDate = '';
+  document.getElementById('savedNote').textContent = 'Saved. Reminder time: ' + t;
+  showToast('Reminder time saved');
 };
-
-
-
 
 window.testAlarm = async () => {
-
-  const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
-
-  if (snap.size > 0) {
-
-    ringAlarm${snap.size} refund(s) still pending. Please pay and mark them Done.);
-
-  } else {
-
-    showToast('No pending refunds');
-
-  }
-
+  const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
+  if (snap.size > 0) {
+    ringAlarm(`${snap.size} refund(s) still pending. Please pay and mark them Done.`);
+  } else {
+    showToast('No pending refunds');
+  }
 };
 
-
-
-
 function startReminderCheck() {
-
-  setInterval(async () => {
-
-    const now = new Date();
-
-    const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-    const today = now.toDateString();
-
-    if (hhmm === getReminderTime() && lastAlarmDate !== today) {
-
-      lastAlarmDate = today;
-
-      const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
-
-      if (snap.size > 0) {
-
-        ringAlarm${snap.size} refund(s) still pending. Please pay and mark them Done.);
-
-      }
-
-    }
-
-  }, 30000);
-
+  setInterval(async () => {
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const today = now.toDateString();
+    if (hhmm === getReminderTime() && lastAlarmDate !== today) {
+      lastAlarmDate = today;
+      const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
+      if (snap.size > 0) {
+        ringAlarm(`${snap.size} refund(s) still pending. Please pay and mark them Done.`);
+      }
+    }
+  }, 30000);
 }
-
-
-
 
 // ---------- Notifications and helpers ----------
-
 function askNotificationPermission() {
-
-  if ('Notification' in window && Notification.permission === 'default') {
-
-    Notification.requestPermission();
-
-  }
-
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
-
-
-
 
 function notify(title, body) {
-
-  if ('Notification' in window && Notification.permission === 'granted') {
-
-    new Notification(title, { body });
-
-  }
-
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body });
+  }
 }
-
-
-
 
 function showToast(msg) {
-
-  const t = document.getElementById('toast');
-
-  t.textContent = msg;
-
-  t.style.display = 'block';
-
-  clearTimeout(window._toastTimer);
-
-  window._toastTimer = setTimeout(() => (t.style.display = 'none'), 3000);
-
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => (t.style.display = 'none'), 3000);
 }
-
-
-
 
 function escapeHtml(s) {
-
-  return String(s).replace(/[&<>"']/g, (c) =>
-
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-
-
-
 
 if ('serviceWorker' in navigator) {
-
-  navigator.serviceWorker.register('sw.js');
-
+  navigator.serviceWorker.register('sw.js');
 }
-
 </script>
-
 </body>
-
 </html>
