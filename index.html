@@ -3,81 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b4fd6">
+<meta name="theme-color" content="#D81860">
 <link rel="manifest" href="manifest.json">
 <title>SOFTIES Vending Refunds</title>
 <style>
+  :root {
+    --main: #D81860;
+    --bright: #FF4081;
+    --light: #FFC1D9;
+    --offwhite: #FFF0F5;
+    --green: #4CAF50;
+    --blue: #2196F3;
+    --red: #F44336;
+  }
   * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; min-height: 100vh; background: linear-gradient(180deg, #0a2a6b 0%, #06164a 60%, #041033 100%); color: #fff; }
-  header { background: linear-gradient(90deg, #0b4fd6, #1e88ff); padding: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(30,136,255,.5); font-size: 20px; font-weight: bold; }
-  .logo { width: 36px; height: 36px; border-radius: 50%; vertical-align: middle; margin-right: 8px; box-shadow: 0 0 12px #5ac8ff; }
-  header button { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.4); padding: 6px 12px; border-radius: 20px; font-size: 14px; }
-  .tabs { display: flex; gap: 8px; padding: 12px; }
-  .tabs button { flex: 1; padding: 12px; border: 0; border-radius: 14px; background: rgba(255,255,255,.08); color: #9fc3ff; font-size: 15px; }
-  .tabs button.active { background: linear-gradient(135deg, #1e88ff, #0b4fd6); color: #fff; box-shadow: 0 0 16px rgba(30,136,255,.7); }
-  .card { background: linear-gradient(135deg, #0f3a8a, #0a2566); margin: 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(90,200,255,.3); box-shadow: 0 0 18px rgba(30,136,255,.35); border-left: 6px solid #ff4d4d; }
-  .card.done { border-left-color: #22c55e; box-shadow: 0 0 18px rgba(34,197,94,.35); }
-  .card .phone { font-size: 18px; font-weight: bold; color: #fff; }
-  .card .meta { color: #b9d6ff; font-size: 13px; margin-top: 6px; white-space: pre-line; line-height: 1.5; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; min-height: 100vh; background: var(--offwhite); color: #5a0f2e; }
+
+  /* Top header */
+  .topbar { background: linear-gradient(180deg, var(--bright), var(--main)); color: #fff; padding: 16px 18px 26px; border-radius: 0 0 36px 36px; position: relative; overflow: hidden; }
+  .topbar .row { display: flex; justify-content: space-between; align-items: center; }
+  .topbar .title { font-size: 14px; opacity: .9; }
+  .topbar h1 { margin: 2px 0 0; font-size: 26px; }
+  .topbar .mascot { position: absolute; right: 8px; top: 10px; width: 110px; }
+  .iconbtn { background: rgba(255,255,255,.25); color: #fff; border: 0; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; }
+
+  /* Summary cards */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; margin-top: -26px; }
+  .stat { background: #fff; border-radius: 18px; padding: 14px; text-align: center; box-shadow: 0 6px 16px rgba(216,24,96,.15); }
+  .stat .lbl { font-size: 14px; color: var(--main); }
+  .stat .num { font-size: 26px; font-weight: bold; }
+  .stat.pending .num { color: var(--main); }
+  .stat.done { background: #f1fbf2; }
+  .stat.done .num { color: var(--green); }
+
+  /* Menu buttons */
+  .menu { padding: 0 14px; }
+  .menu button { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #fff; border: 0; border-radius: 18px; padding: 14px; margin-bottom: 10px; font-size: 16px; font-weight: bold; color: #5a0f2e; box-shadow: 0 4px 12px rgba(216,24,96,.12); }
+  .menu .ico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; margin-right: 12px; }
+  .ico.red { background: var(--main); }
+  .ico.green { background: var(--green); }
+  .ico.grey { background: #7c5f6b; }
+  .menu .label { flex: 1; text-align: left; }
+  .menu .arrow { color: var(--main); font-size: 22px; }
+
+  /* Lists */
+  .listhead { display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 0; }
+  .listhead h2 { margin: 0; font-size: 20px; color: #5a0f2e; }
+  .backbtn { background: none; border: 0; color: var(--main); font-size: 15px; font-weight: bold; }
+  .card { background: #fff; margin: 12px 14px; padding: 14px; border-radius: 18px; box-shadow: 0 4px 14px rgba(216,24,96,.12); }
+  .card .top { display: flex; align-items: center; }
+  .card .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--light); margin-right: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .card .phone { font-size: 17px; font-weight: bold; color: #5a0f2e; flex: 1; }
+  .card .meta { color: #7c5f6b; font-size: 13px; margin-top: 8px; white-space: pre-line; line-height: 1.5; }
   .actions { margin-top: 12px; display: flex; gap: 10px; }
-  .actions button { flex: 1; padding: 11px; border: 0; border-radius: 12px; color: #fff; font-size: 15px; font-weight: bold; }
-  .btn-chat { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 12px rgba(34,197,94,.6); }
-  .btn-done { background: linear-gradient(135deg, #1e88ff, #0b4fd6); box-shadow: 0 0 12px rgba(30,136,255,.7); }
-  .empty { text-align: center; color: #9fc3ff; margin-top: 60px; font-size: 16px; }
-  #login { max-width: 340px; margin: 70px auto; background: linear-gradient(160deg, #0f3a8a, #071d55); padding: 24px; border-radius: 20px; border: 1px solid rgba(90,200,255,.35); box-shadow: 0 0 30px rgba(30,136,255,.4); }
-  #login h3 { margin-top: 0; font-size: 20px; text-align: center; }
-  #login input, #settings input { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border-radius: 12px; border: 1px solid rgba(90,200,255,.4); background: rgba(255,255,255,.08); color: #fff; color-scheme: dark; }
-  #login button, #settings button { width: 100%; padding: 13px; margin-top: 8px; border: 0; border-radius: 12px; color: #fff; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #1e88ff, #0b4fd6); box-shadow: 0 0 16px rgba(30,136,255,.6); }
-  #settings { background: linear-gradient(160deg, #0f3a8a, #071d55); margin: 12px; padding: 18px; border-radius: 18px; border: 1px solid rgba(90,200,255,.3); box-shadow: 0 0 20px rgba(30,136,255,.35); }
-  #settings h3 { margin-top: 0; }
-  #settings .note { color: #9fc3ff; font-size: 14px; margin-top: 12px; }
-  #error { color: #ff6b6b; font-size: 14px; }
+  .actions button { flex: 1; padding: 10px; border: 0; border-radius: 12px; color: #fff; font-size: 14px; font-weight: bold; }
+  .btn-chat { background: var(--green); }
+  .btn-done { background: var(--blue); }
+  .done-badge { color: var(--green); font-weight: bold; margin-top: 8px; font-size: 13px; }
+  .empty { text-align: center; color: var(--main); margin-top: 50px; font-size: 16px; }
+
+  /* Sign-in */
+  #login { max-width: 380px; margin: 0 auto; min-height: 100vh; background: linear-gradient(180deg, var(--offwhite), var(--light)); padding: 40px 22px; text-align: center; }
+  #login .logo-big { width: 120px; height: 120px; border-radius: 50%; background: #fff; border: 4px solid #fff; box-shadow: 0 6px 18px rgba(216,24,96,.25); margin: 0 auto; }
+  #login h2 { color: var(--main); font-size: 30px; margin: 16px 0 0; }
+  #login .sub { color: #5a0f2e; margin-bottom: 22px; }
+  #login input, #settings input { width: 100%; padding: 14px; margin: 8px 0; font-size: 16px; border-radius: 16px; border: 1px solid var(--bright); background: #fff; color: #5a0f2e; }
+  #login button, #settings button, .primary { width: 100%; padding: 15px; margin-top: 12px; border: 0; border-radius: 16px; color: #fff; font-size: 17px; font-weight: bold; background: linear-gradient(135deg, var(--bright), var(--main)); box-shadow: 0 6px 14px rgba(216,24,96,.35); }
+  #error { color: var(--red); font-size: 14px; }
+
+  /* Settings */
+  #settings { margin: 14px; background: #fff; padding: 18px; border-radius: 18px; box-shadow: 0 4px 14px rgba(216,24,96,.12); }
+  #settings h3 { margin: 0 0 8px; color: var(--main); }
+  #settings .note { color: #7c5f6b; font-size: 14px; margin-top: 12px; }
+
   .hidden { display: none !important; }
-  #alarmBox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 99; align-items: center; justify-content: center; padding: 16px; }
-  #alarmBox .box { background: linear-gradient(160deg, #ffffff, #ffe3e3); padding: 26px; border-radius: 20px; text-align: center; max-width: 310px; width: 100%; color: #7a0000; box-shadow: 0 0 40px rgba(255,60,60,.8); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-  #alarmBox .bell { font-size: 56px; }
-  #alarmBox h2 { color: #d10000; margin: 8px 0; }
-  #alarmBox button { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff3b3b, #c40000); color: #fff; border: 0; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 12px; box-shadow: 0 0 18px rgba(255,0,0,.7); }
-  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #1e88ff, #0b4fd6); color: #fff; padding: 12px 18px; border-radius: 14px; display: none; z-index: 100; box-shadow: 0 0 18px rgba(30,136,255,.7); }
+
+  /* Red alarm popup */
+  #alarmBox { display: none; position: fixed; inset: 0; background: rgba(60,0,20,.6); z-index: 99; align-items: center; justify-content: center; padding: 16px; }
+  #alarmBox .box { background: #fff; padding: 26px; border-radius: 24px; text-align: center; max-width: 320px; width: 100%; color: #5a0f2e; box-shadow: 0 10px 40px rgba(216,24,96,.5); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  #alarmBox .bell { font-size: 60px; color: var(--red); }
+  #alarmBox h2 { color: #5a0f2e; margin: 8px 0 4px; font-size: 22px; }
+  #alarmBox p { color: #7c5f6b; font-size: 14px; }
+  #alarmBox button { width: 100%; padding: 16px; background: var(--red); color: #fff; border: 0; border-radius: 14px; font-size: 18px; font-weight: bold; margin-top: 14px; box-shadow: 0 6px 16px rgba(244,67,54,.45); }
+
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--main); color: #fff; padding: 12px 18px; border-radius: 14px; display: none; z-index: 100; }
 </style>
 </head>
 <body>
 
+<!-- Sign-in screen -->
 <div id="login">
-  <h3><img src="icon.png" class="logo" style="width:56px;height:56px;vertical-align:middle">SOFTIES<br><small style="font-weight:normal;color:#9fc3ff">Owner sign-in</small></h3>
+  <img src="icon.png" class="logo-big" alt="SOFTIES">
+  <h2>SOFTIES</h2>
+  <div class="sub">Owner sign-in</div>
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-  <button onclick="signIn()">Sign in</button>
+  <button onclick="signIn()">Sign in &rarr;</button>
   <p id="error"></p>
+  <p style="color:var(--main);font-style:italic;margin-top:30px">Sweet Service. Always!</p>
 </div>
 
+<!-- Main app -->
 <div id="app" class="hidden">
-  <header>
-    <span><img src="icon.png" class="logo">SOFTIES</span>
-    <button onclick="signOutOwner()">Sign out</button>
-  </header>
-  <div class="tabs">
-    <button id="tabPending" class="active" onclick="showTab('Pending')">Pending</button>
-    <button id="tabDone" onclick="showTab('Done')">Done</button>
-    <button id="tabSettings" onclick="showTab('Settings')">Settings</button>
+  <div class="topbar">
+    <div class="row">
+      <div>
+        <div class="title">Hello!</div>
+        <h1>Welcome Back</h1>
+      </div>
+      <button class="iconbtn" onclick="signOutOwner()" title="Sign out">&#x21E5;</button>
+    </div>
+    <img src="robot.png" class="mascot" alt="" onerror="this.style.display='none'">
   </div>
-  <div id="list"></div>
-  <div id="settings" class="hidden">
-    <h3>Reminder time</h3>
-    <p style="color:#9fc3ff">The alarm checks for Pending refunds at this time every day.</p>
-    <input id="reminderTime" type="time">
-    <button onclick="saveReminderTime()">Save time</button>
-    <button onclick="testAlarm()" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">Test alarm now</button>
-    <p class="note" id="savedNote"></p>
+
+  <div class="stats">
+    <div class="stat pending"><div class="lbl">Pending</div><div class="num" id="countPending">0</div></div>
+    <div class="stat done"><div class="lbl">Done</div><div class="num" id="countDone">0</div></div>
+  </div>
+
+  <div id="menu" class="menu">
+    <button onclick="showTab('Pending')"><span class="ico red">&#9719;</span><span class="label">Pending<br>Refunds</span><span class="arrow">&rsaquo;</span></button>
+    <button onclick="showTab('Done')"><span class="ico green">&#10003;</span><span class="label">Done<br>Refunds</span><span class="arrow">&rsaquo;</span></button>
+    <button onclick="showTab('Settings')"><span class="ico grey">&#9881;</span><span class="label">Settings</span><span class="arrow">&rsaquo;</span></button>
+  </div>
+
+  <div id="listScreen" class="hidden">
+    <div class="listhead">
+      <button class="backbtn" onclick="goHome()">&larr; Back</button>
+      <h2 id="listTitle">Pending Refunds</h2>
+      <span></span>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <div id="settingsScreen" class="hidden">
+    <div class="listhead">
+      <button class="backbtn" onclick="goHome()">&larr; Back</button>
+      <h2>Settings</h2>
+      <span></span>
+    </div>
+    <div id="settings">
+      <h3>Daily reminder time</h3>
+      <p style="color:#7c5f6b">The alarm checks for Pending refunds at this time every day.</p>
+      <input id="reminderTime" type="time">
+      <button onclick="saveReminderTime()">Save time</button>
+      <button onclick="testAlarm()" style="background:var(--blue)">Test alarm now</button>
+      <p class="note" id="savedNote"></p>
+    </div>
   </div>
 </div>
 
-<!-- Full-screen alarm popup: stays until you tap Stop -->
+<!-- Red alarm popup: stays until Stop -->
 <div id="alarmBox">
   <div class="box">
-    <div class="bell">🔔</div>
-    <h2>REFUND ALARM</h2>
+    <div class="bell">&#128276;</div>
+    <h2>New Refund Request!</h2>
     <p id="alarmText"></p>
     <button onclick="stopAlarm()">STOP ALARM</button>
   </div>
@@ -85,7 +166,6 @@
 
 <div id="toast"></div>
 
-<!-- Alarm tone (repeats until stopped) -->
 <audio id="alarmSound" preload="auto" loop>
   <source src="alarm.mp3" type="audio/mpeg">
 </audio>
@@ -104,6 +184,7 @@ const auth = getAuth(app);
 
 let currentTab = 'Pending';
 let unsubscribe = null;
+let countUnsub = null;
 let lastPendingCount = -1;
 let lastAlarmDate = '';
 
@@ -125,35 +206,60 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('login').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     askNotificationPermission();
-    listen();
+    goHome();
+    watchCounts();
     startReminderCheck();
   } else {
     document.getElementById('login').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
     if (unsubscribe) unsubscribe();
+    if (countUnsub) countUnsub();
   }
 });
 
-// ---------- Tabs ----------
+// ---------- Screens ----------
+function showOnly(id) {
+  ['menu', 'listScreen', 'settingsScreen'].forEach((s) =>
+    document.getElementById(s).classList.toggle('hidden', s !== id));
+}
+
+window.goHome = () => {
+  if (unsubscribe) unsubscribe();
+  showOnly('menu');
+};
+
 window.showTab = (tab) => {
   currentTab = tab;
-  document.getElementById('tabPending').classList.toggle('active', tab === 'Pending');
-  document.getElementById('tabDone').classList.toggle('active', tab === 'Done');
-  document.getElementById('tabSettings').classList.toggle('active', tab === 'Settings');
-  document.getElementById('settings').classList.toggle('hidden', tab !== 'Settings');
-  document.getElementById('list').classList.toggle('hidden', tab === 'Settings');
-  if (tab === 'Settings') loadReminderTime(); else listen();
+  if (tab === 'Settings') {
+    showOnly('settingsScreen');
+    loadReminderTime();
+    return;
+  }
+  showOnly('listScreen');
+  document.getElementById('listTitle').textContent = tab === 'Done' ? 'Done Refunds' : 'Pending Refunds';
+  listen();
 };
+
+// ---------- Live counts on the dashboard ----------
+function watchCounts() {
+  if (countUnsub) countUnsub();
+  countUnsub = onSnapshot(query(collection(db, 'refunds'), where('status', '==', 'Pending')),
+    (snap) => {
+      document.getElementById('countPending').textContent = snap.size;
+      checkNewRequests(snap.size);
+    });
+  getDocs(query(collection(db, 'refunds'), where('status', '==', 'Done')))
+    .then((s) => document.getElementById('countDone').textContent = s.size)
+    .catch(() => {});
+}
 
 // ---------- Live list ----------
 function listen() {
   if (unsubscribe) unsubscribe();
   const status = currentTab === 'Done' ? 'Done' : 'Pending';
   const q = query(collection(db, 'refunds'), where('status', '==', status), orderBy('time', 'desc'));
-  unsubscribe = onSnapshot(q, (snap) => {
-    if (status === 'Pending') checkNewRequests(snap.size);
-    renderList(snap, status);
-  }, (err) => showToast('Error: ' + err.message));
+  unsubscribe = onSnapshot(q, (snap) => renderList(snap, status),
+    (err) => showToast('Error: ' + err.message));
 }
 
 function renderList(snap, status) {
@@ -167,9 +273,12 @@ function renderList(snap, status) {
     const r = d.data();
     const time = r.time && r.time.toDate ? r.time.toDate().toLocaleString() : '';
     const card = document.createElement('div');
-    card.className = 'card' + (status === 'Done' ? ' done' : '');
+    card.className = 'card';
     card.innerHTML = `
-      <div class="phone">${escapeHtml(r.phone || '')}</div>
+      <div class="top">
+        <div class="avatar">&#128100;</div>
+        <div class="phone">${escapeHtml(r.phone || '')}</div>
+      </div>
       <div class="meta">UPI: ${escapeHtml(r.upiId || '')}
 Issue: ${escapeHtml(r.issue || '')}
 ${escapeHtml(time)}</div>`;
@@ -182,10 +291,15 @@ ${escapeHtml(time)}</div>`;
       chat.onclick = () => openWhatsApp(r.phone, r.upiId);
       const done = document.createElement('button');
       done.className = 'btn-done';
-      done.textContent = 'Mark Done';
+      done.textContent = '\u2713 Mark Done';
       done.onclick = () => markDoneOne(d.id);
       actions.append(chat, done);
       card.append(actions);
+    } else {
+      const badge = document.createElement('div');
+      badge.className = 'done-badge';
+      badge.textContent = '\u2713 Completed';
+      card.append(badge);
     }
     list.append(card);
   });
@@ -202,7 +316,7 @@ function openWhatsApp(phone, upi) {
 async function markDoneOne(id) {
   try {
     await updateDoc(doc(db, 'refunds', id), { status: 'Done' });
-    showToast('Marked as Done');
+    showToast('Refund marked as Done');
   } catch (e) {
     showToast('Could not mark done: ' + e.message);
   }
@@ -211,7 +325,7 @@ async function markDoneOne(id) {
 // ---------- New request alarm ----------
 function checkNewRequests(count) {
   if (lastPendingCount !== -1 && count > lastPendingCount) {
-    ringAlarm('New refund request! Please check the Pending list.');
+    ringAlarm('A customer has requested a refund from the vending machine.');
   }
   lastPendingCount = count;
 }
