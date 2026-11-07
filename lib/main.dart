@@ -6,19 +6,27 @@ import 'refund_screens.dart';
 import 'settings_screen.dart';
 
 const pink = Color(0xFFD81860);
-const brightPink = Color(0xFFFF4081);
-const lightPink = Color(0xFFFFC1D9);
 const offWhite = Color(0xFFFFF0F5);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await AppAlarm.init();
-  runApp(const SofiesApp());
+  String? startError;
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    startError = 'Firebase start failed:\n$e';
+  }
+  try {
+    await AppAlarm.init();
+  } catch (e) {
+    startError = (startError ?? '') + '\n\nAlarm start failed:\n$e';
+  }
+  runApp(SofiesApp(startError: startError));
 }
 
 class SofiesApp extends StatelessWidget {
-  const SofiesApp({super.key});
+  final String? startError;
+  const SofiesApp({super.key, this.startError});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +40,25 @@ class SofiesApp extends StatelessWidget {
         useMaterial3: true,
         appBarTheme: const AppBarTheme(backgroundColor: pink, foregroundColor: Colors.white),
       ),
-      home: const AuthGate(),
+      home: startError != null ? ErrorScreen(message: startError!) : const AuthGate(),
+    );
+  }
+}
+
+class ErrorScreen extends StatelessWidget {
+  final String message;
+  const ErrorScreen({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Startup problem')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: SelectableText(message, style: const TextStyle(fontSize: 15)),
+        ),
+      ),
     );
   }
 }
@@ -45,6 +71,9 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snap) {
+        if (snap.hasError) {
+          return ErrorScreen(message: 'Auth error:\n${snap.error}');
+        }
         if (snap.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
@@ -74,8 +103,8 @@ class _SignInScreenState extends State<SignInScreen> {
         email: _email.text.trim(),
         password: _password.text,
       );
-    } on FirebaseAuthException {
-      setState(() => _error = 'Sign-in failed. Check email and password.');
+    } catch (e) {
+      setState(() => _error = 'Sign-in failed:\n$e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -100,7 +129,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 12),
                 TextField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder())),
                 const SizedBox(height: 12),
-                if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
+                if (_error != null) SelectableText(_error!, style: const TextStyle(color: Colors.red)),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
