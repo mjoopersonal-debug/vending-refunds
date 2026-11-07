@@ -17,7 +17,7 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          cp index.html request.html firebase-config.js manifest.json sw.js www/
+          cp index.html request.html firebase-config.js manifest.json sw.js alarm.mp3 www/
           if [ -f alarm.mp3 ]; then cp alarm.mp3 www/alarm.mp3; fi
           if [ -f icon.png ]; then cp icon.png www/icon.png; fi
           if [ -f icon.PNG ]; then cp icon.PNG www/icon.png; fi
