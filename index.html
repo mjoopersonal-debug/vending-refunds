@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2e7d32">
+<link rel="manifest" href="manifest.json">
+<title>Vending Refunds</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f4; }
+  header { background: #2e7d32; color: #fff; padding: 14px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+  header button { background: #fff; color: #2e7d32; border: 0; padding: 6px 10px; border-radius: 4px; }
+  .tabs { display: flex; background: #fff; }
+  .tabs button { flex: 1; padding: 12px; border: 0; background: none; font-size: 16px; border-bottom: 3px solid transparent; }
+  .tabs button.active { border-bottom-color: #2e7d32; color: #2e7d32; font-weight: bold; }
+  .card { background: #fff; margin: 10px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); border-left: 6px solid #d32f2f; }
+  .card.done { border-left-color: #2e7d32; }
+  .card .phone { font-size: 18px; font-weight: bold; }
+  .card .meta { color: #555; font-size: 14px; margin-top: 4px; white-space: pre-line; }
+  .actions { margin-top: 10px; display: flex; gap: 8px; }
+  .actions button { flex: 1; padding: 10px; border: 0; border-radius: 6px; color: #fff; font-size: 15px; }
+  .btn-chat { background: #25d366; }
+  .btn-done { background: #1565c0; }
+  .empty { text-align: center; color: #777; margin-top: 40px; }
+  #login { max-width: 320px; margin: 80px auto; background: #fff; padding: 20px; border-radius: 8px; }
+  #login input { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; }
+  #login button { width: 100%; padding: 12px; background: #2e7d32; color: #fff; border: 0; border-radius: 6px; font-size: 16px; }
+  #error { color: #d32f2f; font-size: 14px; }
+  .hidden { display: none; }
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 16px; border-radius: 6px; display: none; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h3>Owner sign-in</h3>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="signIn()">Sign in</button>
+  <p id="error"></p>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <span>Vending Refunds</span>
+    <button onclick="signOutOwner()">Sign out</button>
+  </header>
+  <div class="tabs">
+    <button id="tabPending" class="active" onclick="showTab('Pending')">Pending</button>
+    <button id="tabDone" onclick="showTab('Done')">Done</button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div id="toast"></div>
+
+<audio id="alarmSound" preload="auto"
+  src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA"></audio>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDocs, writeBatch }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentTab = 'Pending';
+let unsubscribe = null;
+let lastPendingCount = -1;
+let pendingCountNow = 0;
+
+// ---------- Sign-in ----------
+window.signIn = async () => {
+  try {
+    document.getElementById('error').textContent = '';
+    await signInWithEmailAndPassword(auth,
+      document.getElementById('email').value.trim(),
+      document.getElementById('password').value);
+  } catch (e) {
+    document.getElementById('error').textContent = 'Sign-in failed. Check email and password.';
+  }
+};
+window.signOutOwner = () => signOut(auth);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    askNotificationPermission();
+    listen();
+    scheduleNightlyCheck();
+  } else {
+    document.getElementById('login').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    if (unsubscribe) unsubscribe();
+  }
+});
+
+// ---------- Tabs and live list ----------
+window.showTab = (status) => {
+  currentTab = status;
+  document.getElementById('tabPending').classList.toggle('active', status === 'Pending');
+  document.getElementById('tabDone').classList.toggle('active', status === 'Done');
+  listen();
+};
+
+function listen() {
+  if (unsubscribe) unsubscribe();
+  const q = query(collection(db, 'refunds'),
+    where('status', '==', currentTab),
+    orderBy('time', 'desc'));
+  unsubscribe = onSnapshot(q, (snap) => {
+    if (currentTab === 'Pending') checkNewRequests(snap.size);
+    renderList(snap);
+  }, (err) => showToast('Error: ' + err.message));
+}
+
+function renderList(snap) {
+  const list = document.getElementById('list');
+  if (snap.empty) {
+    list.innerHTML = `<div class="empty">No ${currentTab} refunds</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  snap.forEach((d) => {
+    const r = d.data();
+    const time = r.time && r.time.toDate ? r.time.toDate().toLocaleString() : '';
+    const card = document.createElement('div');
+    card.className = 'card' + (currentTab === 'Done' ? ' done' : '');
+    card.innerHTML = `
+      <div class="phone">${escapeHtml(r.phone || '')}</div>
+      <div class="meta">UPI: ${escapeHtml(r.upiId || '')}
+Issue: ${escapeHtml(r.issue || '')}
+${escapeHtml(time)}</div>`;
+    if (currentTab === 'Pending') {
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const chat = document.createElement('button');
+      chat.className = 'btn-chat';
+      chat.textContent = 'WhatsApp';
+      chat.onclick = () => openWhatsApp(r.phone, r.upiId);
+      const done = document.createElement('button');
+      done.className = 'btn-done';
+      done.textContent = 'Mark Done';
+      done.onclick = () => markDoneOne(d.id);
+      actions.append(chat, done);
+      card.append(actions);
+    }
+    list.append(card);
+  });
+}
+
+// ---------- Actions ----------
+function openWhatsApp(phone, upi) {
+  let digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 10) digits = '91' + digits;
+  const msg = encodeURIComponent(
+    `Hi, this is Softies Vending about your refund. We are processing it to UPI ID ${upi}.`);
+  window.open(`https://wa.me/${digits}?text=${msg}`, '_blank');
+}
+
+async function markDoneOne(id) {
+  try {
+    await updateDoc(doc(db, 'refunds', id), { status: 'Done' });
+    showToast('Marked as Done');
+  } catch (e) {
+    showToast('Could not mark done: ' + e.message);
+  }
+}
+
+// ---------- Alarm for new requests ----------
+function checkNewRequests(count) {
+  if (lastPendingCount !== -1 && count > lastPendingCount) {
+    playAlarm();
+    showToast('New refund request!');
+    notify('New refund request', 'A customer has requested a refund.');
+  }
+  lastPendingCount = count;
+  pendingCountNow = count;
+}
+
+function playAlarm() {
+  const a = document.getElementById('alarmSound');
+  a.currentTime = 0;
+  a.play().catch(() => {});
+}
+
+function askNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function notify(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body });
+  }
+}
+
+// ---------- 10 PM reminder (runs while the app is open) ----------
+function scheduleNightlyCheck() {
+  setInterval(async () => {
+    const now = new Date();
+    if (now.getHours() === 22 && now.getMinutes() === 0) {
+      const snap = await getDocs(query(collection(db, 'refunds'), where('status', '==', 'Pending')));
+      if (snap.size > 0) {
+        playAlarm();
+        notify('Pending refunds', `${snap.size} refund(s) still pending. Please pay and mark them Done.`);
+        showToast(`${snap.size} refund(s) still pending`);
+      }
+    }
+  }, 60000);
+}
+
+// ---------- Helpers ----------
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => (t.style.display = 'none'), 3000);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
