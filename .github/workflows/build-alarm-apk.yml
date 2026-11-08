@@ -22,7 +22,7 @@ jobs:
         run: |
           flutter create --org com.softies --project-name vending_refunds --platforms android .
 
-      - name: Patch Android for alarms and Firebase
+      - name: Patch Android for alarms, Firebase and app name
         run: |
           python3 - << 'PYEOF'
           import re
@@ -32,6 +32,7 @@ jobs:
           add = ''.join('    <uses-permission android:name="android.permission.%s"/>\n' % x for x in perms)
           s = s.replace('<application', add + '    <application', 1)
           s = s.replace('<activity', '<activity android:showWhenLocked="true" android:turnScreenOn="true"', 1)
+          s = re.sub(r'android:label="[^"]*"', 'android:label="Softies Refunds"', s, count=1)
           open(p, 'w').write(s)
           g = 'android/app/build.gradle.kts'
           t = open(g).read()
@@ -48,6 +49,15 @@ jobs:
               open(r, 'w').write(u)
           print('patched')
           PYEOF
+
+      - name: Set launcher icon to icon.png
+        run: |
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            cp icon.png android/app/src/main/res/$d/ic_launcher.png
+            cp icon.png android/app/src/main/res/$d/ic_launcher_round.png
+          done
+          echo "launcher icon set"
 
       - name: Build the APK
         run: |
