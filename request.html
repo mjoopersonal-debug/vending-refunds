@@ -30,34 +30,57 @@
   .wave { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; pointer-events: none; z-index: 0; }
   .footer { text-align: center; color: var(--main); font-style: italic; margin: 10px 0 24px; position: relative; z-index: 1; }
 
-  /* Intro animation (10 seconds, tap to skip) */
-  #intro{position:fixed;inset:0;z-index:9999;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#8e0b3a,#ff4081);cursor:pointer}
-  #intro .glow{position:absolute;width:260px;height:260px;border-radius:50%;border:6px solid rgba(255,64,129,.7);box-shadow:0 0 40px #ff4081;animation:spin 1.6s linear infinite,fadeOut 1.5s ease 0s forwards}
-  #intro .splash{position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(#fff,rgba(255,255,255,0));animation:splash 1.5s ease 1s both}
-  #intro .logo{position:absolute;width:260px;animation:zoom 1.2s ease-out 2s both}
-  #intro .mascot{position:absolute;width:180px;top:18%;animation:zoom .9s ease-out 3s both,fadeOut .6s ease 4.4s forwards}
-  #intro .cone{position:absolute;bottom:8%;width:220px;animation:bounce 1.5s ease-out 4s both,fadeOut .6s ease 7s forwards}
-  #intro .tag{position:absolute;bottom:2%;color:#fff;font-style:italic;font-size:18px;animation:fadeIn .7s ease 8.5s both}
-  #intro .hint{position:absolute;top:14px;right:16px;color:rgba(255,255,255,.8);font-size:13px}
-  #intro.gone{display:none}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes fadeOut{to{opacity:0}}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes splash{from{transform:scale(.2);opacity:0}to{transform:scale(1.2);opacity:1}}
-  @keyframes zoom{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-  @keyframes bounce{0%{opacity:0;transform:translateY(120px) scale(.6)}60%{opacity:1;transform:translateY(-12px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  /* Storyboard intro: 4 screens, about 8 seconds, tap to skip */
+  #intro{position:fixed;inset:0;z-index:9999;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#ffe4ef,#ffc1d9);cursor:pointer;font-family:'Segoe UI',Arial,sans-serif}
+  #intro .frame{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
+  #intro .blob{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#e8579a,rgba(232,87,154,0));filter:blur(6px);opacity:.55}
+  #intro .f1{animation:f1 8s linear forwards}
+  #intro .f2{animation:f2 8s linear forwards}
+  #intro .f3{animation:f3 8s linear forwards}
+  #intro .f4{animation:f4 8s linear forwards}
+  #intro .logo{width:280px;max-width:80%}
+  #intro .mascot{width:200px;animation:bounceIn .8s ease-out .2s both}
+  #intro .spark{position:absolute;color:#ffc94d;font-size:26px;animation:twinkle 1.2s ease-in-out infinite}
+  #intro .tag{color:#c8195f;font-weight:bold;letter-spacing:2px;font-size:13px;margin-top:6px}
+  #intro .cta{margin-top:26px;background:linear-gradient(135deg,#ff4081,#d81860);color:#fff;padding:14px 28px;border-radius:24px;font-weight:bold;font-size:16px;box-shadow:0 8px 18px rgba(216,24,96,.35)}
+  #intro .hint{position:absolute;top:14px;right:16px;color:#c8195f;font-size:13px}
+  @keyframes f1{0%{opacity:0}20%{opacity:1}40%{opacity:1}55%{opacity:0}100%{opacity:0}}
+  @keyframes f2{0%,50%{opacity:0}60%{opacity:1}85%{opacity:1}95%{opacity:0}100%{opacity:0}}
+  @keyframes f3{0%,80%{opacity:0}88%{opacity:1}100%{opacity:1}}
+  @keyframes f4{0%,95%{opacity:0}100%{opacity:1}}
+  @keyframes bounceIn{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+  @keyframes twinkle{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 </style>
 </head>
 <body>
 
 <div id="intro" onclick="closeIntro()">
-  <div class="glow"></div>
-  <div class="splash"></div>
-  <img class="logo" src="icon.png" alt="SOFTIES">
-  <img class="mascot" src="robot.png" alt="" onerror="this.remove()">
-  <img class="cone" src="cone.png" alt="" onerror="this.remove()">
-  <div class="tag">Sweet Service. Always!</div>
   <div class="hint">Tap to skip</div>
+
+  <div class="frame f1">
+    <div class="blob"></div>
+  </div>
+
+  <div class="frame f2">
+    <img class="mascot" src="robot.png" alt="" onerror="this.remove()">
+    <img class="logo" src="icon.png" alt="SOFTIES">
+  </div>
+
+  <div class="frame f3">
+    <span class="spark" style="top:22%;left:24%">&#10022;</span>
+    <span class="spark" style="top:26%;right:24%;animation-delay:.4s">&#10022;</span>
+    <span class="spark" style="bottom:28%;left:28%;animation-delay:.8s">&#10022;</span>
+    <img class="mascot" src="robot.png" alt="" onerror="this.remove()">
+    <img class="logo" src="icon.png" alt="SOFTIES">
+    <div class="tag">SOFT SERVE ICE CREAM</div>
+  </div>
+
+  <div class="frame f4">
+    <img class="mascot" src="robot.png" alt="" onerror="this.remove()">
+    <img class="logo" src="icon.png" alt="SOFTIES">
+    <div class="tag">SOFT SERVE ICE CREAM</div>
+    <div class="cta">Explore Menu &rarr;</div>
+  </div>
 </div>
 
 <header>Request a Refund</header>
@@ -155,7 +178,7 @@ document.getElementById('refundForm').addEventListener('submit', async (e) => {
 function closeIntro(){ var el=document.getElementById('intro'); if(el) el.remove(); }
 // Show once per browser session, then skip it on later visits in the same tab
 if (sessionStorage.getItem('introSeen')) { closeIntro(); }
-else { sessionStorage.setItem('introSeen','1'); setTimeout(closeIntro, 10000); }
+else { sessionStorage.setItem('introSeen','1'); setTimeout(closeIntro, 8000); }
 </script>
 </body>
 </html>
