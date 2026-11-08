@@ -37,7 +37,7 @@ class SofiesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SOFTIES Vending Refunds',
+      title: 'Softies Refunds',
       navigatorKey: navKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -156,20 +156,20 @@ class _SignInScreenState extends State<SignInScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 24),
+                // Logo: whole image shown inside the circle, not cropped
                 Container(
                   width: 200,
                   height: 200,
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
                     boxShadow: [BoxShadow(color: pink.withOpacity(0.25), blurRadius: 18)],
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/icon.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 100, color: pink),
-                    ),
+                  child: Image.asset(
+                    'assets/icon.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 100, color: pink),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -201,7 +201,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 const Text('Sweet Service. Always!', style: TextStyle(color: pink, fontStyle: FontStyle.italic)),
                 const SizedBox(height: 16),
                 Image.asset('assets/cone.png', height: 220, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                Image.asset('assets/wave.png', width: double.infinity, height: 110, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                // Wave directly under the cone, same as the web page
+                Image.asset('assets/wave.png', width: double.infinity, fit: BoxFit.fitWidth, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
               ],
             ),
           ),
@@ -310,7 +311,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Center(
             child: Image.asset('assets/cone.png', height: 200, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
           ),
-          const SizedBox(height: 24),
+          // Wave under the cone, same as the web page
+          Image.asset('assets/wave.png', width: double.infinity, fit: BoxFit.fitWidth, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
         ],
       ),
     );
@@ -414,6 +416,7 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ),
+            // Header logo: icon.png
             Positioned(
               right: 6,
               top: 40,
