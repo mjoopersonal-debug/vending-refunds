@@ -103,7 +103,7 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-// ---------- Sign-in screen (matches the web sign-in) ----------
+// ---------- Sign-in screen ----------
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -211,7 +211,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 }
 
-// ---------- Home screen (matches the web dashboard) ----------
+// ---------- Home screen ----------
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -242,8 +242,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // New request: rings the alarm in 3 seconds and shows a notice
   Future<void> _alertNewRequest() async {
-    await AppAlarm.test();
+    await AppAlarm.schedule(
+      key: 'new-request-${DateTime.now().millisecondsSinceEpoch}',
+      when: DateTime.now().add(const Duration(seconds: 3)),
+      title: 'New refund request',
+      body: 'A customer has requested a refund.',
+    );
     final ctx = navKey.currentContext;
     if (ctx != null) {
       ScaffoldMessenger.of(ctx).showSnackBar(
