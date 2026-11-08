@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'app_alarm.dart';
-import 'intro_screen.dart';
 import 'refund_screens.dart';
 import 'settings_screen.dart';
 
@@ -60,9 +59,7 @@ class SofiesApp extends StatelessWidget {
           ),
         ),
       ),
-      home: startError != null
-          ? ErrorScreen(message: startError!)
-          : const IntroScreen(next: AuthGate()),
+      home: startError != null ? ErrorScreen(message: startError!) : const AuthGate(),
     );
   }
 }
