@@ -103,6 +103,45 @@ class AuthGate extends StatelessWidget {
   }
 }
 
+// Cone with the wave overlapping its lower half
+class ConeWave extends StatelessWidget {
+  const ConeWave({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 260,
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            top: 0,
+            child: Image.asset(
+              'assets/cone.png',
+              height: 230,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Image.asset(
+              'assets/wave.png',
+              width: double.infinity,
+              height: 130,
+              fit: BoxFit.cover,
+              alignment: Alignment.bottomCenter,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ---------- Sign-in screen ----------
 
 class SignInScreen extends StatefulWidget {
@@ -155,26 +194,18 @@ class _SignInScreenState extends State<SignInScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 24),
-                // Logo: whole image shown inside the circle, not cropped
-                Container(
+                const SizedBox(height: 12),
+                // icon.png already has its own round design, so show it as is
+                Image.asset(
+                  'assets/icon.png',
                   width: 200,
                   height: 200,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [BoxShadow(color: pink.withOpacity(0.25), blurRadius: 18)],
-                  ),
-                  child: Image.asset(
-                    'assets/icon.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 100, color: pink),
-                  ),
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.icecream, size: 100, color: pink),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 const Text('Owner sign-in', style: TextStyle(color: darkPlum, fontSize: 18)),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: Column(
@@ -197,12 +228,10 @@ class _SignInScreenState extends State<SignInScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 const Text('Sweet Service. Always!', style: TextStyle(color: pink, fontStyle: FontStyle.italic)),
-                const SizedBox(height: 16),
-                Image.asset('assets/cone.png', height: 220, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                // Wave directly under the cone, same as the web page
-                Image.asset('assets/wave.png', width: double.infinity, fit: BoxFit.fitWidth, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                const SizedBox(height: 8),
+                const ConeWave(),
               ],
             ),
           ),
@@ -307,12 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: Image.asset('assets/cone.png', height: 200, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-          ),
-          // Wave under the cone, same as the web page
-          Image.asset('assets/wave.png', width: double.infinity, fit: BoxFit.fitWidth, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+          const SizedBox(height: 8),
+          const ConeWave(),
         ],
       ),
     );
@@ -416,12 +441,12 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ),
-            // Header logo: icon.png
+            // Top right: robot.png
             Positioned(
               right: 6,
               top: 40,
               child: Image.asset(
-                'assets/icon.png',
+                'assets/robot.png',
                 height: 150,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
