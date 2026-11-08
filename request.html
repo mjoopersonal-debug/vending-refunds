@@ -30,26 +30,27 @@
   .wave { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; pointer-events: none; z-index: 0; }
   .footer { text-align: center; color: var(--main); font-style: italic; margin: 10px 0 24px; position: relative; z-index: 1; }
 
-  /* Storyboard intro: 4 screens, about 8 seconds, tap to skip */
-  #intro{position:fixed;inset:0;z-index:9999;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#ffe4ef,#ffc1d9);cursor:pointer;font-family:'Segoe UI',Arial,sans-serif}
-  #intro .frame{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
-  #intro .blob{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#e8579a,rgba(232,87,154,0));filter:blur(6px);opacity:.55}
-  #intro .f1{animation:f1 8s linear forwards}
-  #intro .f2{animation:f2 8s linear forwards}
-  #intro .f3{animation:f3 8s linear forwards}
-  #intro .f4{animation:f4 8s linear forwards}
-  #intro .logo{width:280px;max-width:80%}
-  #intro .mascot{width:200px;animation:bounceIn .8s ease-out .2s both}
-  #intro .spark{position:absolute;color:#ffc94d;font-size:26px;animation:twinkle 1.2s ease-in-out infinite}
-  #intro .tag{color:#c8195f;font-weight:bold;letter-spacing:2px;font-size:13px;margin-top:6px}
-  #intro .cta{margin-top:26px;background:linear-gradient(135deg,#ff4081,#d81860);color:#fff;padding:14px 28px;border-radius:24px;font-weight:bold;font-size:16px;box-shadow:0 8px 18px rgba(216,24,96,.35)}
-  #intro .hint{position:absolute;top:14px;right:16px;color:#c8195f;font-size:13px}
-  @keyframes f1{0%{opacity:0}20%{opacity:1}40%{opacity:1}55%{opacity:0}100%{opacity:0}}
-  @keyframes f2{0%,50%{opacity:0}60%{opacity:1}85%{opacity:1}95%{opacity:0}100%{opacity:0}}
-  @keyframes f3{0%,80%{opacity:0}88%{opacity:1}100%{opacity:1}}
-  @keyframes f4{0%,95%{opacity:0}100%{opacity:1}}
-  @keyframes bounceIn{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
-  @keyframes twinkle{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+  /* Intro: four screens, one at a time, about 8 seconds, tap to skip */
+  #intro { position: fixed; inset: 0; z-index: 9999; overflow: hidden; background: linear-gradient(180deg, #ffe4ef, #ffc1d9); cursor: pointer; font-family: 'Segoe UI', Arial, sans-serif; }
+  #intro .frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; animation-duration: 8s; animation-timing-function: linear; animation-fill-mode: forwards; }
+  #intro .f1 { animation-name: f1; }
+  #intro .f2 { animation-name: f2; }
+  #intro .f3 { animation-name: f3; }
+  #intro .f4 { animation-name: f4; }
+  #intro .blob { width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #e8579a, rgba(232,87,154,0)); filter: blur(6px); opacity: .55; }
+  #intro .mascot { width: 200px; animation: bounceIn .8s ease-out .2s both; }
+  #intro .logo { width: 280px; max-width: 80%; }
+  #intro .spark { position: absolute; color: #ffc94d; font-size: 26px; animation: twinkle 1.2s ease-in-out infinite; }
+  #intro .tag { color: #c8195f; font-weight: bold; letter-spacing: 2px; font-size: 13px; margin-top: 6px; }
+  #intro .cta { margin-top: 26px; background: linear-gradient(135deg, #ff4081, #d81860); color: #fff; padding: 14px 28px; border-radius: 24px; font-weight: bold; font-size: 16px; box-shadow: 0 8px 18px rgba(216,24,96,.35); }
+  #intro .hint { position: absolute; top: 14px; right: 16px; color: #c8195f; font-size: 13px; z-index: 2; }
+  /* Each screen is visible only in its own time slot, so only one set shows at once */
+  @keyframes f1 { 0% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes f2 { 0%, 50% { opacity: 0; } 55% { opacity: 1; } 80% { opacity: 1; } 90% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes f3 { 0%, 90% { opacity: 0; } 95% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes f4 { 0%, 100% { opacity: 0; } }
+  @keyframes bounceIn { 0% { transform: scale(.3); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes twinkle { 0%, 100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.2); } }
 </style>
 </head>
 <body>
@@ -75,7 +76,7 @@
     <div class="tag">SOFT SERVE ICE CREAM</div>
   </div>
 
-  <div class="frame f4">
+  <div class="frame f4" style="animation: none; opacity: 1;">
     <img class="mascot" src="robot.png" alt="" onerror="this.remove()">
     <img class="logo" src="icon.png" alt="SOFTIES">
     <div class="tag">SOFT SERVE ICE CREAM</div>
