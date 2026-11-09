@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -45,9 +47,13 @@ class RefundListScreen extends StatelessWidget {
               final phone = (d['phone'] ?? '').toString();
               final upi = (d['upiId'] ?? '').toString();
               final issue = (d['issue'] ?? '').toString();
+              final iceOnly = d['iceCreamOnly'] == true;
+              final itemBytes = _bytesFrom(d['itemPhoto']);
+              final payBytes = _bytesFrom(d['paymentPhoto']);
               final time = d['time'] is Timestamp
                   ? (d['time'] as Timestamp).toDate().toLocal().toString().substring(0, 16)
                   : '';
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
@@ -55,11 +61,27 @@ class RefundListScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(phone, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Row(children: [
+                        Expanded(child: Text(phone, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                        if (iceOnly)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(10)),
+                            child: const Text('Ice cream only', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ),
+                      ]),
                       const SizedBox(height: 6),
-                      Text('UPI: $upi', style: const TextStyle(color: Colors.black87)),
+                      if (upi.isNotEmpty) Text('UPI: $upi', style: const TextStyle(color: Colors.black87)),
                       Text('Issue: $issue', style: const TextStyle(color: Colors.black87)),
                       Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      if (itemBytes != null || payBytes != null) ...[
+                        const SizedBox(height: 10),
+                        Row(children: [
+                          if (itemBytes != null) _photoTile(context, 'Item photo', itemBytes),
+                          if (itemBytes != null && payBytes != null) const SizedBox(width: 10),
+                          if (payBytes != null) _photoTile(context, 'Payment screenshot', payBytes),
+                        ]),
+                      ],
                       if (isPending) ...[
                         const SizedBox(height: 10),
                         Row(children: [
@@ -89,6 +111,64 @@ class RefundListScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+// Turns the saved photo text back into an image. Returns null if there is no photo.
+Uint8List? _bytesFrom(dynamic value) {
+  if (value is! String || value.isEmpty) return null;
+  final comma = value.indexOf(',');
+  final b64 = comma >= 0 ? value.substring(comma + 1) : value;
+  try {
+    return base64Decode(b64);
+  } catch (_) {
+    return null;
+  }
+}
+
+Widget _photoTile(BuildContext context, String label, Uint8List bytes) {
+  return Expanded(
+    child: GestureDetector(
+      onTap: () => _showFull(context, label, bytes),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.memory(
+              bytes,
+              height: 110,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Text('Photo could not be shown'),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showFull(BuildContext context, String title, Uint8List bytes) {
+  showDialog(
+    context: context,
+    builder: (ctx) => Dialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ),
+          Flexible(
+            child: InteractiveViewer(child: Image.memory(bytes)),
+          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+        ],
+      ),
+    ),
+  );
 }
 
 Future<void> _openWhatsApp(String phone, String upi) async {
