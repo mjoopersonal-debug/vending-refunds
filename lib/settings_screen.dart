@@ -25,7 +25,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final h = p.getInt('reminderHour') ?? 22;
     final m = p.getInt('reminderMinute') ?? 0;
     if (mounted) setState(() => _time = TimeOfDay(hour: h, minute: m));
-    _scheduleReminder();
+    // Remove any old fixed daily alarm so it never rings by itself
+    await AppAlarm.cancel('daily-reminder');
   }
 
   Future<void> _pick() async {
@@ -34,36 +35,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final p = await SharedPreferences.getInstance();
     await p.setInt('reminderHour', picked.hour);
     await p.setInt('reminderMinute', picked.minute);
-    setState(() => _time = picked);
-    await _scheduleReminder();
-    if (mounted) setState(() => _note = 'Saved. Reminder at ${_time.format(context)}');
-  }
-
-  /// Sets the daily reminder for the next occurrence of the chosen time.
-  Future<void> _scheduleReminder() async {
-    final now = DateTime.now();
-    var when = DateTime(now.year, now.month, now.day, _time.hour, _time.minute);
-    if (!when.isAfter(now)) when = when.add(const Duration(days: 1));
-    await AppAlarm.schedule(
-      key: 'daily-reminder',
-      when: when,
-      title: 'Pending refunds',
-      body: 'Please pay and mark your pending refunds as Done.',
-    );
+    await AppAlarm.cancel('daily-reminder');
+    if (mounted) {
+      setState(() {
+        _time = picked;
+        _note = 'Saved. The alarm rings at ${_time.format(context)} only if refunds are pending.';
+      });
+    }
   }
 
   Future<void> _test() async {
     await AppAlarm.test();
     if (mounted) setState(() => _note = 'Test alarm will ring in 30 seconds.');
-  }
-
-  Future<void> _allowNotifications() async {
-    await AppAlarm.setup();
-    if (mounted) setState(() => _note = 'Permissions requested. Allow each one.');
-  }
-
-  Future<void> _openPhoneSettings() async {
-    await openAppSettings();
   }
 
   Widget _card({required Widget child}) => Card(
@@ -82,8 +65,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.alarm, color: pink),
-              title: const Text('Daily reminder time'),
-              subtitle: const Text('The alarm checks for Pending refunds at this time every day.'),
+              title: const Text('Reminder time'),
+              subtitle: const Text('Rings only if there are Pending refunds at this time.'),
               trailing: Text(_time.format(context),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: pink)),
               onTap: _pick,
@@ -108,9 +91,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(color: darkPlum, fontSize: 17, fontWeight: FontWeight.bold)),
                 SizedBox(height: 8),
                 Text(
-                  'New refund alerts work while the app is running in the background. '
-                  'To keep it running:\n'
-                  '1. Allow notifications and exact alarms (button below).\n'
+                  'New refund alerts and the reminder work while the app is running in the background.\n'
+                  '1. Allow notifications and alarms (button below).\n'
                   '2. Set the app battery to "No restrictions".\n'
                   '3. On Xiaomi, Oppo, Vivo, Realme or Samsung, turn on auto-start.\n'
                   '4. Do not swipe the app away from recent apps.',
@@ -120,13 +102,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           OutlinedButton(
-            onPressed: _allowNotifications,
+            onPressed: () => AppAlarm.setup(),
             child: const Padding(padding: EdgeInsets.all(12), child: Text('Allow notifications and alarms')),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: _openPhoneSettings,
-            child: const Padding(padding: EdgeInsets.all(12), child: Text('Open app settings (battery, auto-start)')),
           ),
           const SizedBox(height: 16),
           Text(_note, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54)),
