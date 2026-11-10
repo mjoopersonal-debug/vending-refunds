@@ -22,10 +22,21 @@ jobs:
         run: |
           flutter create --org com.softies --project-name vending_refunds --platforms android .
 
-      - name: Patch Android for alarms, Firebase and app name
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/softies.jks
+
+      - name: Patch Android for alarms, Firebase, name, icon and signing
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           python3 - << 'PYEOF'
-          import re
+          import re, os
+          pw = os.environ['KEYSTORE_PASSWORD']
+          alias = os.environ['KEY_ALIAS']
           p = 'android/app/src/main/AndroidManifest.xml'
           s = open(p).read()
           perms = ['SCHEDULE_EXACT_ALARM','USE_EXACT_ALARM','POST_NOTIFICATIONS','WAKE_LOCK','VIBRATE','USE_FULL_SCREEN_INTENT','RECEIVE_BOOT_COMPLETED','FOREGROUND_SERVICE','FOREGROUND_SERVICE_MEDIA_PLAYBACK','REQUEST_IGNORE_BATTERY_OPTIMIZATIONS','INTERNET']
@@ -39,6 +50,19 @@ jobs:
           t = re.sub(r'minSdk\s*=\s*flutter\.minSdkVersion', 'minSdk = 26', t)
           t = re.sub(r'compileSdk\s*=\s*flutter\.compileSdkVersion', 'compileSdk = 36', t)
           t = re.sub(r'applicationId\s*=\s*"[^"]*"', 'applicationId = "com.softies.vendingrefunds"', t)
+          signing = (
+              'signingConfigs {\n'
+              '        create("softies") {\n'
+              '            storeFile = file("softies.jks")\n'
+              '            storePassword = "' + pw + '"\n'
+              '            keyAlias = "' + alias + '"\n'
+              '            keyPassword = "' + pw + '"\n'
+              '        }\n'
+              '    }\n'
+              '    buildTypes {'
+          )
+          t = t.replace('buildTypes {', signing, 1)
+          t = re.sub(r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)', 'signingConfig = signingConfigs.getByName("softies")', t)
           if 'google-services' not in t:
               t = t.replace('id("dev.flutter.flutter-gradle-plugin")', 'id("dev.flutter.flutter-gradle-plugin")\n    id("com.google.gms.google-services")', 1)
           open(g, 'w').write(t)
@@ -57,7 +81,6 @@ jobs:
             cp icon.png android/app/src/main/res/$d/ic_launcher.png
             cp icon.png android/app/src/main/res/$d/ic_launcher_round.png
           done
-          echo "launcher icon set"
 
       - name: Build the APK
         run: |
