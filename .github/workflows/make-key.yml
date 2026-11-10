@@ -1,0 +1,20 @@
+name: Make signing key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create keystore
+        run: |
+          keytool -genkeypair -v -keystore softies.jks -storetype JKS \
+            -keyalg RSA -keysize 2048 -validity 10000 -alias softies \
+            -storepass "SoftiesKey2026!" -keypass "SoftiesKey2026!" \
+            -dname "CN=Softies Refunds, OU=App, O=Softies, L=Kerala, S=Kerala, C=IN"
+          base64 -w 0 softies.jks > softies.b64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signing-key
+          path: softies.b64
