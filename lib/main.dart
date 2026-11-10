@@ -15,6 +15,8 @@ const offWhite = Color(0xFFFFF0F5);
 const darkPlum = Color(0xFF5A0F2E);
 const greyPlum = Color(0xFF7C5F6B);
 
+final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   String? startError;
