@@ -265,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .listen((snap) {
       final count = snap.size;
       if (!_firstLoad && count > _pendingCount) {
-        _alertNewRequest();
+        _alertNewRequest(count);
       }
       _firstLoad = false;
       _pendingCount = count;
@@ -275,24 +275,32 @@ class _HomeScreenState extends State<HomeScreen> {
     _reminderTimer = Timer.periodic(const Duration(seconds: 30), (_) => _checkReminder());
   }
 
-  // Rings at the chosen reminder time, but only if refunds are pending
+  // Rings once a day at the chosen reminder time, only if refunds are pending
   Future<void> _checkReminder() async {
     final p = await SharedPreferences.getInstance();
     final h = p.getInt('reminderHour') ?? 22;
     final m = p.getInt('reminderMinute') ?? 0;
     final now = DateTime.now();
-    if (now.hour == h && now.minute == m && _pendingCount > 0) {
-      await AppAlarm.test();
+    final today = '${now.year}-${now.month}-${now.day}';
+    if (now.hour == h && now.minute == m && _pendingCount > 0 &&
+        p.getString('reminderFiredDay') != today) {
+      await p.setString('reminderFiredDay', today);
+      await AppAlarm.schedule(
+        key: 'pending-reminder',
+        when: DateTime.now().add(const Duration(seconds: 1)),
+        title: 'Pending refunds',
+        body: 'There are $_pendingCount pending requests, please go and check.',
+      );
     }
   }
 
-  // New request: rings the alarm in 3 seconds and shows a notice
-  Future<void> _alertNewRequest() async {
+  // New request: rings the alarm in 3 seconds and shows the pending count
+  Future<void> _alertNewRequest(int count) async {
     await AppAlarm.schedule(
       key: 'new-request-${DateTime.now().millisecondsSinceEpoch}',
       when: DateTime.now().add(const Duration(seconds: 3)),
-      title: 'New refund request',
-      body: 'A customer has requested a refund.',
+      title: 'New request arrived',
+      body: 'A customer has requested a refund. Pending now: $count.',
     );
     final ctx = navKey.currentContext;
     if (ctx != null) {
