@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_alarm.dart';
 import 'refund_screens.dart';
 import 'settings_screen.dart';
@@ -195,7 +196,6 @@ class _SignInScreenState extends State<SignInScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 12),
-                // icon.png already has its own round design, so show it as is
                 Image.asset(
                   'assets/icon.png',
                   width: 200,
@@ -251,6 +251,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<QuerySnapshot>? _sub;
+  Timer? _reminderTimer;
   bool _firstLoad = true;
   int _pendingCount = 0;
 
@@ -270,8 +271,22 @@ class _HomeScreenState extends State<HomeScreen> {
       _pendingCount = count;
       if (mounted) setState(() {});
     });
+    // Checks every 30 seconds whether it is the reminder time
+    _reminderTimer = Timer.periodic(const Duration(seconds: 30), (_) => _checkReminder());
   }
 
+  // Rings at the chosen reminder time, but only if refunds are pending
+  Future<void> _checkReminder() async {
+    final p = await SharedPreferences.getInstance();
+    final h = p.getInt('reminderHour') ?? 22;
+    final m = p.getInt('reminderMinute') ?? 0;
+    final now = DateTime.now();
+    if (now.hour == h && now.minute == m && _pendingCount > 0) {
+      await AppAlarm.test();
+    }
+  }
+
+  // New request: rings the alarm in 3 seconds and shows a notice
   Future<void> _alertNewRequest() async {
     await AppAlarm.schedule(
       key: 'new-request-${DateTime.now().millisecondsSinceEpoch}',
@@ -290,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _sub?.cancel();
+    _reminderTimer?.cancel();
     super.dispose();
   }
 
@@ -441,7 +457,6 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ),
-            // Top right: robot.png
             Positioned(
               right: 6,
               top: 40,
